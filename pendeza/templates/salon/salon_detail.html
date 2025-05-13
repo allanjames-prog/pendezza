@@ -1,0 +1,942 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ salon.name }} - Pendeza Salon{% endblock %}
+
+{% block content %}
+<style>
+  /* Salon Detail Page Styles */
+  .salon-hero {
+    position: relative;
+    height: 60vh;
+    min-height: 500px;
+    overflow: hidden;
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+    display: flex;
+    align-items: center;
+    color: white;
+    margin-bottom: 50px;
+  }
+
+  .salon-hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
+  }
+
+  .salon-header-content {
+    position: relative;
+    z-index: 2;
+  }
+
+  .salon-badge {
+    font-weight: 500;
+    padding: 6px 12px;
+    font-size: 14px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-bottom: 15px;
+  }
+
+  .badge-live {
+    background-color: #28a745;
+    color: white;
+  }
+  .badge-draft {
+    background-color: #6c757d;
+    color: white;
+  }
+  .badge-in_review {
+    background-color: #17a2b8;
+    color: white;
+  }
+  .badge-disabled {
+    background-color: #dc3545;
+    color: white;
+  }
+  .badge-rejected {
+    background-color: #ffc107;
+    color: #212529;
+  }
+  .badge-featured {
+    background-color: #dc3545;
+    color: white;
+  }
+
+  .salon-rating {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 5px 15px;
+    border-radius: 50px;
+    margin-left: 15px;
+  }
+
+  .salon-rating .stars {
+    color: #ffc107;
+    margin-right: 5px;
+  }
+
+  .salon-actions {
+    margin-top: 30px;
+  }
+
+  .btn-booking {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    padding: 12px 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .btn-booking:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3);
+    background-color: #c99f0d;
+    border-color: #c99f0d;
+  }
+
+  /* Salon Info Section */
+  .salon-info-section {
+    padding: 60px 0;
+  }
+
+  .info-card {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    height: 100%;
+  }
+
+  .info-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  .info-card-header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 15px 20px;
+    font-weight: 600;
+  }
+
+  .info-card-body {
+    padding: 20px;
+  }
+
+  .info-item {
+    display: flex;
+    margin-bottom: 15px;
+  }
+
+  .info-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .info-icon {
+    width: 40px;
+    height: 40px;
+    background-color: rgba(200, 162, 200, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    flex-shrink: 0;
+    color: var(--primary-color);
+  }
+
+  /* Gallery Section */
+  .gallery-section {
+    padding: 60px 0;
+    background-color: #f9f9f9;
+  }
+
+  .gallery-item {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .gallery-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  .gallery-item img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+
+  .gallery-item:hover img {
+    transform: scale(1.05);
+  }
+
+  .gallery-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+    padding: 15px;
+    color: white;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .gallery-item:hover .gallery-overlay {
+    opacity: 1;
+  }
+
+  /* Services Section */
+  .services-section {
+    padding: 60px 0;
+  }
+
+  .service-card {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+    border: 1px solid #eee;
+  }
+
+  .service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-color);
+  }
+
+  .service-card-header {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .service-card-body {
+    padding: 20px;
+  }
+
+  .service-price {
+    font-weight: 700;
+    color: var(--accent-color);
+    font-size: 1.2rem;
+  }
+
+  .service-duration {
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+
+  /* Team Section */
+  .team-section {
+    padding: 60px 0;
+    background-color: #f9f9f9;
+  }
+
+  .team-card {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+    background: white;
+    text-align: center;
+  }
+
+  .team-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  .team-img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+  }
+
+  .team-info {
+    padding: 20px;
+  }
+
+  .team-social {
+    margin-top: 15px;
+  }
+
+  .team-social a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 35px;
+    height: 35px;
+    background-color: rgba(200, 162, 200, 0.1);
+    border-radius: 50%;
+    margin: 0 5px;
+    color: var(--primary-color);
+    transition: all 0.3s ease;
+  }
+
+  .team-social a:hover {
+    background-color: var(--primary-color);
+    color: white;
+    transform: translateY(-3px);
+  }
+
+  /* Reviews Section */
+  .reviews-section {
+    padding: 60px 0;
+  }
+
+  .review-card {
+    border-radius: 8px;
+    padding: 25px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+    background: white;
+  }
+
+  .review-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  .review-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+
+  .review-user {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 15px;
+  }
+
+  .review-stars {
+    color: #ffc107;
+    margin-bottom: 5px;
+  }
+
+  .review-date {
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+
+  /* Booking Section */
+  .booking-section {
+    padding: 60px 0;
+    background: linear-gradient(135deg, rgba(200, 162, 200, 0.1), rgba(212, 175, 55, 0.05));
+  }
+
+  .booking-card {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    background: white;
+  }
+
+  .booking-card-header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .booking-card-body {
+    padding: 30px;
+  }
+
+  .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(200, 162, 200, 0.25);
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .salon-hero {
+      height: auto;
+      padding: 100px 0;
+    }
+    
+    .salon-rating {
+      display: block;
+      margin-left: 0;
+      margin-top: 10px;
+    }
+  }
+</style>
+
+<!-- Salon Hero Section -->
+<section class="salon-hero">
+  {% if salon.image %}
+  <img src="{{ salon.image.url }}" class="salon-hero-bg" alt="{{ salon.name }}">
+  {% else %}
+  <div class="salon-hero-bg" style="background-color: var(--primary-color);"></div>
+  {% endif %}
+  
+  <div class="container">
+    <div class="salon-header-content">
+      <span class="salon-badge badge-{{ salon.status|lower }}">
+        {{ salon.get_status_display }}
+      </span>
+      {% if salon.featured %}
+      <span class="salon-badge badge-featured">Featured</span>
+      {% endif %}
+      
+      <h1 class="display-4 fw-bold mb-3">{{ salon.name }}</h1>
+      
+      <div class="d-flex flex-wrap align-items-center mb-3">
+        <p class="lead mb-0"><i class="fas fa-map-marker-alt me-2"></i> {{ salon.address }}</p>
+        <div class="salon-rating">
+          <span class="stars">
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star-half-alt"></i>
+          </span>
+          <span class="ms-2">4.7 (128 reviews)</span>
+        </div>
+      </div>
+      
+      <div class="salon-actions">
+        <a href="#booking" class="btn btn-booking btn-lg me-3">
+          <i class="fas fa-calendar-alt me-2"></i> Book Appointment
+        </a>
+        <a href="#reviews" class="btn btn-outline-light btn-lg me-3">
+          <i class="fas fa-star me-2"></i> Leave Review
+        </a>
+        <a href="#" class="btn btn-outline-light btn-lg">
+          <i class="fas fa-share-alt me-2"></i> Share
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Salon Info Section -->
+<section class="salon-info-section">
+  <div class="container">
+    <div class="row">
+      <!-- About Salon -->
+      <div class="col-lg-8 mb-4">
+        <div class="info-card">
+          <div class="info-card-header">
+            <i class="fas fa-info-circle me-2"></i> About Our Salon
+          </div>
+          <div class="info-card-body">
+            <p>{{ salon.description }}</p>
+            
+            <div class="row mt-4">
+              <div class="col-md-6">
+                <div class="info-item">
+                  <div class="info-icon">
+                    <i class="fas fa-clock"></i>
+                  </div>
+                  <div>
+                    <h5>Working Hours</h5>
+                    <p class="mb-0">Monday - Friday: 9AM - 8PM<br>
+                    Saturday: 9AM - 6PM<br>
+                    Sunday: 10AM - 4PM</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="info-item">
+                  <div class="info-icon">
+                    <i class="fas fa-parking"></i>
+                  </div>
+                  <div>
+                    <h5>Parking</h5>
+                    <p class="mb-0">Free parking available<br>
+                    Valet service on weekends</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="info-item">
+                  <div class="info-icon">
+                    <i class="fas fa-wifi"></i>
+                  </div>
+                  <div>
+                    <h5>Amenities</h5>
+                    <p class="mb-0">Free WiFi<br>
+                    Complimentary drinks<br>
+                    Luxury waiting area</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="info-item">
+                  <div class="info-icon">
+                    <i class="fas fa-credit-card"></i>
+                  </div>
+                  <div>
+                    <h5>Payment Options</h5>
+                    <p class="mb-0">Cash, Credit Cards<br>
+                    Mobile Payments<br>
+                    Salon Gift Cards</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Contact Info -->
+      <div class="col-lg-4 mb-4">
+        <div class="info-card">
+          <div class="info-card-header">
+            <i class="fas fa-phone-alt me-2"></i> Contact Information
+          </div>
+          <div class="info-card-body">
+            <div class="info-item">
+              <div class="info-icon">
+                <i class="fas fa-phone"></i>
+              </div>
+              <div>
+                <h5>Phone</h5>
+                <p class="mb-0">+1 (555) 123-4567</p>
+              </div>
+            </div>
+            
+            <div class="info-item">
+              <div class="info-icon">
+                <i class="fas fa-envelope"></i>
+              </div>
+              <div>
+                <h5>Email</h5>
+                <p class="mb-0">info@{{ salon.name|lower }}.com</p>
+              </div>
+            </div>
+            
+            <div class="info-item">
+              <div class="info-icon">
+                <i class="fas fa-map-marker-alt"></i>
+              </div>
+              <div>
+                <h5>Location</h5>
+                <p class="mb-0">{{ salon.address }}</p>
+                <a href="#" class="text-primary">View on map</a>
+              </div>
+            </div>
+            
+            <div class="info-item">
+              <div class="info-icon">
+                <i class="fas fa-share-alt"></i>
+              </div>
+              <div>
+                <h5>Social Media</h5>
+                <div class="social-links mt-2">
+                  <a href="#" class="me-2"><i class="fab fa-facebook-f"></i></a>
+                  <a href="#" class="me-2"><i class="fab fa-instagram"></i></a>
+                  <a href="#" class="me-2"><i class="fab fa-twitter"></i></a>
+                  <a href="#"><i class="fab fa-pinterest"></i></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Gallery Section -->
+<section class="gallery-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold">Our Salon Gallery</h2>
+      <p class="text-muted">Take a look at our beautiful space and work</p>
+    </div>
+    
+    <div class="row">
+      {% for i in "123456" %}
+      <div class="col-md-4 col-sm-6">
+        <div class="gallery-item">
+          <img src="https://source.unsplash.com/random/600x400/?salon,beauty,{{ i }}" alt="Salon Image {{ i }}">
+          <div class="gallery-overlay">
+            <h5 class="mb-0">Salon Area {{ i }}</h5>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    
+    <div class="text-center mt-4">
+      <a href="#" class="btn btn-primary">
+        <i class="fas fa-images me-2"></i> View Full Gallery
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Services Section -->
+<section class="services-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold">Our Services</h2>
+      <p class="text-muted">Professional beauty services tailored for you</p>
+    </div>
+    
+    <div class="row">
+      <div class="col-md-6 col-lg-4">
+        <div class="service-card">
+          <div class="service-card-header">
+            <h5 class="mb-0">Haircut & Styling</h5>
+            <span class="service-price">$45+</span>
+          </div>
+          <div class="service-card-body">
+            <p>Professional haircut and styling with our expert stylists using premium products.</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="service-duration"><i class="fas fa-clock me-1"></i> 45-60 min</span>
+              <a href="#booking" class="btn btn-sm btn-primary">Book Now</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-6 col-lg-4">
+        <div class="service-card">
+          <div class="service-card-header">
+            <h5 class="mb-0">Hair Coloring</h5>
+            <span class="service-price">$75+</span>
+          </div>
+          <div class="service-card-body">
+            <p>Full or partial hair coloring with ammonia-free dyes for vibrant, healthy-looking hair.</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="service-duration"><i class="fas fa-clock me-1"></i> 90-120 min</span>
+              <a href="#booking" class="btn btn-sm btn-primary">Book Now</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-6 col-lg-4">
+        <div class="service-card">
+          <div class="service-card-header">
+            <h5 class="mb-0">Manicure & Pedicure</h5>
+            <span class="service-price">$35+</span>
+          </div>
+          <div class="service-card-body">
+            <p>Luxurious nail care treatment including shaping, cuticle care, and polish.</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="service-duration"><i class="fas fa-clock me-1"></i> 60-75 min</span>
+              <a href="#booking" class="btn btn-sm btn-primary">Book Now</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-6 col-lg-4">
+        <div class="service-card">
+          <div class="service-card-header">
+            <h5 class="mb-0">Facial Treatment</h5>
+            <span class="service-price">$65+</span>
+          </div>
+          <div class="service-card-body">
+            <p>Customized facial treatment to cleanse, exfoliate, and nourish your skin.</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="service-duration"><i class="fas fa-clock me-1"></i> 60 min</span>
+              <a href="#booking" class="btn btn-sm btn-primary">Book Now</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-6 col-lg-4">
+        <div class="service-card">
+          <div class="service-card-header">
+            <h5 class="mb-0">Waxing</h5>
+            <span class="service-price">$25+</span>
+          </div>
+          <div class="service-card-body">
+            <p>Professional waxing services for smooth, hair-free skin with minimal discomfort.</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="service-duration"><i class="fas fa-clock me-1"></i> 30-45 min</span>
+              <a href="#booking" class="btn btn-sm btn-primary">Book Now</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-6 col-lg-4">
+        <div class="service-card">
+          <div class="service-card-header">
+            <h5 class="mb-0">Makeup Application</h5>
+            <span class="service-price">$55+</span>
+          </div>
+          <div class="service-card-body">
+            <p>Professional makeup application for any occasion using high-end cosmetics.</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="service-duration"><i class="fas fa-clock me-1"></i> 45-60 min</span>
+              <a href="#booking" class="btn btn-sm btn-primary">Book Now</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="text-center mt-4">
+      <a href="#" class="btn btn-outline-primary">
+        <i class="fas fa-list me-2"></i> View All Services
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Team Section -->
+<section class="team-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold">Meet Our Team</h2>
+      <p class="text-muted">Professional stylists dedicated to your beauty</p>
+    </div>
+    
+    <div class="row">
+      {% for member in "1234" %}
+      <div class="col-md-6 col-lg-3">
+        <div class="team-card">
+          <img src="https://randomuser.me/api/portraits/women/{{ forloop.counter|add:30 }}.jpg" class="team-img" alt="Team Member">
+          <div class="team-info">
+            <h5>Stylist Name</h5>
+            <p class="text-muted mb-2">Hair Specialist</p>
+            <div class="team-social">
+              <a href="#"><i class="fab fa-instagram"></i></a>
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+              <a href="#"><i class="fab fa-twitter"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    
+    <div class="text-center mt-4">
+      <a href="#" class="btn btn-primary">
+        <i class="fas fa-users me-2"></i> View Full Team
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Reviews Section -->
+<section class="reviews-section" id="reviews">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold">Customer Reviews</h2>
+      <p class="text-muted">What our clients say about us</p>
+    </div>
+    
+    <div class="row">
+      <div class="col-lg-4 mb-4">
+        <div class="review-card">
+          <div class="review-header">
+            <img src="https://randomuser.me/api/portraits/women/44.jpg" class="review-user" alt="User">
+            <div>
+              <div class="review-stars">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <h6 class="mb-0">Sarah Johnson</h6>
+              <small class="review-date">2 weeks ago</small>
+            </div>
+          </div>
+          <p>"Absolutely love this salon! The atmosphere is so relaxing and the staff are incredibly talented. My hair has never looked better!"</p>
+        </div>
+      </div>
+      
+      <div class="col-lg-4 mb-4">
+        <div class="review-card">
+          <div class="review-header">
+            <img src="https://randomuser.me/api/portraits/men/32.jpg" class="review-user" alt="User">
+            <div>
+              <div class="review-stars">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star-half-alt"></i>
+              </div>
+              <h6 class="mb-0">Michael Brown</h6>
+              <small class="review-date">1 month ago</small>
+            </div>
+          </div>
+          <p>"Great experience from start to finish. The stylist listened to what I wanted and delivered exactly that. Will definitely be back!"</p>
+        </div>
+      </div>
+      
+      <div class="col-lg-4 mb-4">
+        <div class="review-card">
+          <div class="review-header">
+            <img src="https://randomuser.me/api/portraits/women/68.jpg" class="review-user" alt="User">
+            <div>
+              <div class="review-stars">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="far fa-star"></i>
+              </div>
+              <h6 class="mb-0">Emily Davis</h6>
+              <small class="review-date">2 months ago</small>
+            </div>
+          </div>
+          <p>"Beautiful salon with excellent service. The only reason I didn't give 5 stars is because my appointment started 10 minutes late."</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="text-center mt-3">
+      <a href="#" class="btn btn-outline-primary me-3">
+        <i class="fas fa-star me-2"></i> Leave a Review
+      </a>
+      <a href="#" class="btn btn-primary">
+        <i class="fas fa-list me-2"></i> See All Reviews
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Booking Section -->
+<section class="booking-section" id="booking">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="booking-card">
+          <div class="booking-card-header">
+            <h3 class="mb-0"><i class="fas fa-calendar-alt me-2"></i> Book an Appointment</h3>
+          </div>
+          <div class="booking-card-body">
+            <form>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="name" class="form-label">Full Name</label>
+                  <input type="text" class="form-control" id="name" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="email" class="form-label">Email Address</label>
+                  <input type="email" class="form-control" id="email" required>
+                </div>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="phone" class="form-label">Phone Number</label>
+                  <input type="tel" class="form-control" id="phone" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="service" class="form-label">Service</label>
+                  <select class="form-select" id="service" required>
+                    <option value="" selected disabled>Select a service</option>
+                    <option>Haircut & Styling</option>
+                    <option>Hair Coloring</option>
+                    <option>Manicure & Pedicure</option>
+                    <option>Facial Treatment</option>
+                    <option>Waxing</option>
+                    <option>Makeup Application</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="date" class="form-label">Date</label>
+                  <input type="date" class="form-control" id="date" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="time" class="form-label">Time</label>
+                  <input type="time" class="form-control" id="time" required>
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                <label for="notes" class="form-label">Special Requests</label>
+                <textarea class="form-control" id="notes" rows="3"></textarea>
+              </div>
+              
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">
+                  <i class="fas fa-calendar-check me-2"></i> Book Appointment
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Map Section -->
+<section class="py-0">
+  <div class="container-fluid px-0">
+    <div class="ratio ratio-21x9">
+      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.215209179324!2d-73.98784492416406!3d40.75798597138961!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480299%3A0x55194ec5a1ae072e!2sTimes%20Square!5e0!3m2!1sen!2sus!4v1623251234567!5m2!1sen!2sus" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Smooth scrolling for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      
+      document.querySelector(this.getAttribute('href')).scrollIntoView({
+        behavior: 'smooth'
+      });
+    });
+  });
+  
+  // Initialize datepicker with available dates
+  document.addEventListener('DOMContentLoaded', function() {
+    const dateInput = document.getElementById('date');
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    // Format dates for input (YYYY-MM-DD)
+    const formatDate = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+    
+    // Set min date to tomorrow
+    dateInput.min = formatDate(tomorrow);
+    
+    // Set max date to 3 months from now
+    const maxDate = new Date(today);
+    maxDate.setMonth(maxDate.getMonth() + 3);
+    dateInput.max = formatDate(maxDate);
+    
+    // Initialize time slots based on salon hours
+    const timeInput = document.getElementById('time');
+    timeInput.min = '09:00';
+    timeInput.max = '19:30';
+    timeInput.step = '1800'; // 30 minutes in seconds
+  });
+</script>
+{% endblock %}

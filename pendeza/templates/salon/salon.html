@@ -1,0 +1,646 @@
+{% extends 'base.html' %} {% block content %}
+<style>
+  /* Custom CSS for Salon Cards */
+  .salon-card {
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .salon-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .salon-img-container {
+    height: 200px;
+    overflow: hidden;
+  }
+
+  .salon-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+
+  .salon-card:hover .salon-img {
+    transform: scale(1.05);
+  }
+
+  .salon-badge {
+    font-weight: 500;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+  }
+
+  .badge-live {
+    background-color: #28a745;
+    color: white;
+  }
+  .badge-draft {
+    background-color: #6c757d;
+    color: white;
+  }
+  .badge-in_review {
+    background-color: #17a2b8;
+    color: white;
+  }
+  .badge-disabled {
+    background-color: #dc3545;
+    color: white;
+  }
+  .badge-rejected {
+    background-color: #ffc107;
+    color: #212529;
+  }
+  .badge-featured {
+    background-color: #dc3545;
+    color: white;
+  }
+
+  .pagination .page-item.active .page-link {
+    background-color: #6f42c1;
+    border-color: #6f42c1;
+  }
+</style>
+
+<style>
+  /* Hero Section Styles */
+  .hero-section {
+    position: relative;
+    overflow: hidden;
+    color: white;
+    padding: 160px 0;
+    text-align: center;
+    background: linear-gradient(
+        135deg,
+        rgba(111, 66, 193, 0.85),
+        rgba(33, 37, 41, 0.9)
+      ),
+      url("https://images.unsplash.com/photo-1522337360788-8b13dee7a37e");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    animation: gradientShift 12s ease infinite alternate;
+  }
+
+  @keyframes gradientShift {
+    0% {
+      background-position: 0% 50%;
+    }
+    100% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    animation: fadeInUp 0.8s ease;
+  }
+
+  .hero-subtitle {
+    font-size: 1.5rem;
+    margin-bottom: 2.5rem;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    animation: fadeInUp 0.8s ease 0.2s both;
+  }
+
+  .hero-buttons {
+    animation: fadeInUp 0.8s ease 0.4s both;
+  }
+
+  .btn-hero-primary {
+    background-color: rgba(255, 255, 255, 0.26);
+    border-color: rgb(119, 103, 192);
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.4);
+  }
+
+  .btn-hero-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255, 240, 240, 0.6);
+    background-color:rgb(119, 103, 192);
+    border-color:rgb(216, 210, 243);
+  }
+
+  .btn-hero-secondary {
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+  }
+
+  .btn-hero-secondary:hover {
+    transform: translateY(-3px);
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .hero-scroll-down {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: bounce 2s infinite;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes bounce {
+    0%,
+    20%,
+    50%,
+    80%,
+    100% {
+      transform: translateY(0) translateX(-50%);
+    }
+    40% {
+      transform: translateY(-20px) translateX(-50%);
+    }
+    60% {
+      transform: translateY(-10px) translateX(-50%);
+    }
+  }
+
+  /* Floating elements animation */
+  .floating-elements {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  .floating-element {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    animation: float 15s infinite linear;
+  }
+
+  @keyframes float {
+    0% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-1000px) rotate(720deg);
+      opacity: 0;
+    }
+  }
+</style>
+
+<!-- Hero Section -->
+<section class="hero-section">
+  <!-- Floating background elements -->
+  <div class="floating-elements">
+    <div
+      class="floating-element"
+      style="
+        width: 40px;
+        height: 40px;
+        top: 20%;
+        left: 10%;
+        animation-delay: 0s;
+      "
+    ></div>
+    <div
+      class="floating-element"
+      style="
+        width: 60px;
+        height: 60px;
+        top: 60%;
+        left: 80%;
+        animation-delay: 2s;
+      "
+    ></div>
+    <div
+      class="floating-element"
+      style="
+        width: 30px;
+        height: 30px;
+        top: 30%;
+        left: 50%;
+        animation-delay: 4s;
+      "
+    ></div>
+    <div
+      class="floating-element"
+      style="
+        width: 50px;
+        height: 50px;
+        top: 70%;
+        left: 30%;
+        animation-delay: 6s;
+      "
+    ></div>
+  </div>
+
+  <div class="container">
+    <div class="hero-content">
+      {% if user.is_authenticated %}
+      <h1 class="hero-title">
+        Welcome Back, <span class="text-warning">{{ user.username }}</span>!
+      </h1>
+      <p class="hero-subtitle">
+        Ready for your next luxury beauty experience? We've missed you!
+      </p>
+      <div class="hero-buttons">
+        <a href="#" class="btn btn-hero-primary btn-lg me-3">
+          <i class="fas fa-calendar-check me-2"></i> Book Appointment
+        </a>
+        <a href="#" class="btn btn-hero-secondary btn-lg btn-outline-light">
+          <i class="fas fa-gem me-2"></i> Explore Services
+        </a>
+      </div>
+      {% else %}
+      <h1 class="hero-title">
+        Experience <span class="text-warning">Luxury Beauty</span>
+      </h1>
+      <p class="hero-subtitle">
+        Indulge in our premium salon services designed to enhance your natural
+        beauty
+      </p>
+      <div class="hero-buttons">
+        <a href="#" class="btn btn-hero-primary btn-lg me-3">
+          <i class="fas fa-calendar-alt me-2"></i> Book Now
+        </a>
+        <a
+          href="{% url 'userauthentication:sign_up' %}"
+          class="btn btn-hero-secondary btn-lg btn-outline-light"
+        >
+          <i class="fas fa-user-plus me-2"></i> Join Us
+        </a>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="hero-scroll-down">
+      <a href="#salons" class="text-white" style="font-size: 2rem">
+        <i class="fas fa-chevron-down"></i>
+      </a>
+    </div>
+  </div>
+</section>
+<!-- Salons Section -->
+<section class="py-5" id="salons">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Our Salons</h2>
+            <p class="text-muted">Discover our premium salon locations</p>
+        </div>
+        
+        <!-- Salon Cards Grid -->
+        <div class="row g-4">
+            {% for salon in page_obj %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm salon-card">
+                    <div class="salon-img-container">
+                        {% if salon.image %}
+                        <img src="{{ salon.image.url }}" class="salon-img" alt="{{ salon.name }}">
+                        {% else %}
+                        <div class="d-flex align-items-center justify-content-center h-100 bg-light">
+                            <i class="fas fa-image fa-3x text-muted"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="card-title mb-1">{{ salon.name }}</h5>
+                                <span class="badge badge-{{ salon.status|lower }} mb-2 salon-badge">
+                                    {{ salon.get_status_display }}
+                                </span>
+                            </div>
+                            {% if salon.featured %}
+                            <span class="badge badge-featured salon-badge">Featured</span>
+                            {% endif %}
+                        </div>
+                        <p class="card-text text-muted mb-2">
+                            <i class="fas fa-map-marker-alt me-1"></i> {{ salon.address|truncatechars:30 }}
+                        </p>
+                        <p class="card-text">{{ salon.description|truncatechars:100 }}</p>
+                    </div>
+                    <div class="card-footer bg-white border-0 d-flex justify-content-between">
+                        <a href="{% url 'salon:detail' salon.slug %}" class="btn btn-sm btn-primary">
+                            View Details
+                        </a>
+                        <div class="text-muted small">
+                            <i class="far fa-eye me-1"></i> {{ salon.views }} views
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <div class="alert alert-info">
+                    No salons available at the moment. Please check back later.
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-hidden="true">&laquo;</span>
+                </li>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% else %}
+                <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-hidden="true">&raquo;</span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</section>
+
+
+<!-- Testimonials -->
+<section class="py-5" style="background-color: var(--secondary-color)">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold">App Ratings & Reviews</h2>
+      <p class="text-muted">What users say about our booking experience</p>
+    </div>
+
+    <div class="row g-4">
+      <!-- Testimonial 1 -->
+      <div class="col-lg-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm testimonial-card">
+          <div class="card-body p-4 position-relative">
+            <!-- Decorative quote icon -->
+            <div
+              class="quote-icon"
+              style="color: rgba(var(--primary-color-rgb), 0.1)"
+            >
+              <i class="fas fa-quote-left fa-4x"></i>
+            </div>
+
+            <!-- User photo -->
+            <div class="user-photo mx-auto mb-3">
+              <img
+                src="https://randomuser.me/api/portraits/women/44.jpg"
+                class="rounded-circle"
+                alt="Sarah Johnson"
+                width="80"
+                height="80"
+              />
+            </div>
+
+            <!-- App rating stars -->
+            <div class="rating-stars mb-3 text-center">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <span class="rating-value ms-2">5.0</span>
+            </div>
+
+            <!-- Review text -->
+            <p class="card-text text-center position-relative">
+              "This app makes booking salon appointments effortless! The
+              interface is intuitive and I love the real-time availability
+              feature."
+            </p>
+
+            <!-- User info -->
+            <div class="user-info text-center mt-4">
+              <h6 class="mb-1 fw-bold">Sarah Johnson</h6>
+              <small class="text-muted d-block">App User Since 2022</small>
+              <small class="text-primary">150+ Bookings</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Testimonial 2 -->
+      <div class="col-lg-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm testimonial-card">
+          <div class="card-body p-4 position-relative">
+            <div
+              class="quote-icon"
+              style="color: rgba(var(--primary-color-rgb), 0.1)"
+            >
+              <i class="fas fa-quote-left fa-4x"></i>
+            </div>
+
+            <div class="user-photo mx-auto mb-3">
+              <img
+                src="https://randomuser.me/api/portraits/men/32.jpg"
+                class="rounded-circle"
+                alt="Michael Brown"
+                width="80"
+                height="80"
+              />
+            </div>
+
+            <div class="rating-stars mb-3 text-center">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="far fa-star"></i>
+              <span class="rating-value ms-2">4.0</span>
+            </div>
+
+            <p class="card-text text-center">
+              "The notification system is perfect - reminds me of appointments
+              and even suggests rebooking my regular services. Would give 5
+              stars if the search filters were better."
+            </p>
+
+            <div class="user-info text-center mt-4">
+              <h6 class="mb-1 fw-bold">Michael Brown</h6>
+              <small class="text-muted d-block">Power User</small>
+              <small class="text-primary">Uses app weekly</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Testimonial 3 -->
+      <div class="col-lg-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm testimonial-card">
+          <div class="card-body p-4 position-relative">
+            <div
+              class="quote-icon"
+              style="color: rgba(var(--primary-color-rgb), 0.1)"
+            >
+              <i class="fas fa-quote-left fa-4x"></i>
+            </div>
+
+            <div class="user-photo mx-auto mb-3">
+              <img
+                src="https://randomuser.me/api/portraits/women/68.jpg"
+                class="rounded-circle"
+                alt="Emily Davis"
+                width="80"
+                height="80"
+              />
+            </div>
+
+            <div class="rating-stars mb-3 text-center">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+              <span class="rating-value ms-2">4.5</span>
+            </div>
+
+            <p class="card-text text-center">
+              "As a salon owner, this app has transformed my business. The
+              management dashboard is incredible and my clients love the
+              seamless booking experience."
+            </p>
+
+            <div class="user-info text-center mt-4">
+              <h6 class="mb-1 fw-bold">Emily Davis</h6>
+              <small class="text-muted d-block">Business Owner</small>
+              <small class="text-primary">3 salons on platform</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- App Store Buttons -->
+    <div class="text-center mt-5">
+      <p class="mb-3">Download Pendeza today</p>
+      <div class="d-flex justify-content-center gap-3">
+        <a href="#" class="btn btn-dark btn-lg">
+          <i class="fab fa-apple me-2"></i> App Store
+        </a>
+        <a href="#" class="btn btn-dark btn-lg">
+          <i class="fab fa-google-play me-2"></i> Google Play
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Updated Testimonial Styles */
+  .testimonial-card {
+    transition: transform 0.3s ease;
+    border-radius: 12px;
+    background: white;
+  }
+
+  .testimonial-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  .quote-icon {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    opacity: 0.5;
+    z-index: 0;
+  }
+
+  .user-photo img {
+    border: 3px solid var(--primary-color);
+    object-fit: cover;
+    z-index: 1;
+    position: relative;
+  }
+
+  .rating-stars {
+    color: #ffc107;
+    font-size: 18px;
+    letter-spacing: 2px;
+  }
+
+  .rating-value {
+    color: #6c757d;
+    font-weight: bold;
+  }
+
+  .testimonial-card .card-text {
+    font-style: italic;
+    position: relative;
+    z-index: 1;
+    line-height: 1.6;
+  }
+
+  .user-info {
+    position: relative;
+    z-index: 1;
+  }
+</style>
+<!-- Special Offers -->
+<section class="py-5 bg-dark text-white">
+  <div class="container text-center">
+    <h2 class="fw-bold mb-4">Special Offers</h2>
+    <p class="lead mb-4">Enjoy 20% off your first visit when you book online</p>
+    {% if user.is_authenticated %}
+    <a href="#" class="btn btn-primary btn-lg px-4">Book Now</a>
+    {% else %}
+    <a
+      href="{% url 'userauthentication:sign_up' %}"
+      class="btn btn-primary btn-lg px-4 me-2"
+      >Sign Up to Claim</a
+    >
+    <a href="#" class="btn btn-outline-light btn-lg px-4">Learn More</a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

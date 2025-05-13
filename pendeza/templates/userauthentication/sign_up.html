@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% block title %}Sign Up | LUXE SALON{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <h2 class="fw-bold mb-3" style="color: var(--primary-color);">Create Your Account</h2>
+                        <p class="text-muted">Join our luxury beauty community today</p>
+                    </div>
+                    
+                    {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <form method="POST" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="id_full_name" class="form-label">Full Name</label>
+                            <input type="text" name="full_name" id="id_full_name" 
+                                   class="form-control py-2" placeholder="Enter your full name"
+                                   value="{{ form.full_name.value|default:'' }}" required>
+                            {% if form.full_name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.full_name.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_username" class="form-label">Username</label>
+                            <input type="text" name="username" id="id_username" 
+                                   class="form-control py-2" placeholder="Choose a username"
+                                   value="{{ form.username.value|default:'' }}" required>
+                            {% if form.username.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.username.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_email" class="form-label">Email Address</label>
+                            <input type="email" name="email" id="id_email" 
+                                   class="form-control py-2" placeholder="Enter your email"
+                                   value="{{ form.email.value|default:'' }}" required>
+                            {% if form.email.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.email.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_phone" class="form-label">Phone Number</label>
+                            <input type="tel" name="phone" id="id_phone" 
+                                   class="form-control py-2" placeholder="Enter phone number"
+                                   value="{{ form.phone.value|default:'' }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_password1" class="form-label">Password</label>
+                            <input type="password" name="password1" id="id_password1" 
+                                   class="form-control py-2" placeholder="Create password" required>
+                            {% if form.password1.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.password1.errors }}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">At least 8 characters with numbers and letters</div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="id_password2" class="form-label">Confirm Password</label>
+                            <input type="password" name="password2" id="id_password2" 
+                                   class="form-control py-2" placeholder="Confirm password" required>
+                            {% if form.password2.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.password2.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid mb-4">
+                            <button type="submit" class="btn btn-primary py-2">
+                                <i class="fas fa-user-plus me-2"></i> Create Account
+                            </button>
+                        </div>
+                        
+                        <div class="text-center pt-3 border-top">
+                            <p class="mb-0">Already have an account? 
+                                <a href="#" class="text-decoration-none" style="color: var(--primary-color);">Sign In</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .form-control {
+        border: 1px solid #e0e0e0;
+        transition: all 0.3s;
+    }
+    
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(200, 162, 200, 0.25);
+    }
+    
+    .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        transition: all 0.3s;
+    }
+    
+    .btn-primary:hover {
+        background-color: #b591b5;
+        border-color: #b591b5;
+        transform: translateY(-2px);
+    }
+    
+    .invalid-feedback {
+        font-size: 0.85rem;
+    }
+</style>
+
+<script>
+    // Form validation
+    (function() {
+        'use strict';
+        
+        // Fetch all the forms we want to apply custom validation styles to
+        const forms = document.querySelectorAll('.needs-validation');
+        
+        // Loop over them and prevent submission
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+</script>
+{% endblock %}
