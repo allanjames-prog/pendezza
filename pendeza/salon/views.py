@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from salon.models import salon_image_upload_path, Salon, SalonGallery, SalonFeatures, SalonFaq, SalonServices, ServiceCategory, SalonStatus, BookingStatus, Booking, ServiceGender, PaymentStatus, StaffOnDuty
+from salon.models import salon_image_upload_path, Salon, SalonGallery, SalonFeatures, SalonFaq, SalonServices, ServiceCategory, SalonStatus, BookingStatus, Booking, ServiceGender, PaymentStatus, StaffOnDuty, SalonReview
 from django.core.paginator import Paginator
 from django.http import Http404
 from django.views.decorators.cache import cache_page
@@ -15,6 +15,9 @@ from django.core.exceptions import PermissionDenied
 from userauthentication.models import User
 from datetime import datetime, timedelta
 from django.urls import reverse
+
+# Import json for JSON responses
+import json
 
 
 
@@ -793,3 +796,19 @@ class StaffAvailabilityView(LoginRequiredMixin, View):
                    available_slots.append(slot)
        return available_slots
     
+
+# ============================================
+# SALON REVIEWS
+# ============================================
+# ========== SALON REVIEWS VIEW ==========
+# add_review
+def add_review(request, pk):
+    data = json.loads(request.body)
+    review = SalonReview(
+        salon_id=pk,
+        user=request.user,
+        rating=data.get('rating'),
+        comment=data.get('comment')
+    )
+    review.save()
+    return JsonResponse(review.to_dict(), status=201)

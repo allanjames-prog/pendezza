@@ -1,8 +1,6 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %} {% block title %}{{ salon.name }} - Pendeza Salon{% endblock %} {% block content %}
 
-{% block title %}{{ salon.name }} - Pendeza Salon{% endblock %}
-
-{% block content %}
+{% load static %}
 <style>
   /* Salon Detail Page Styles */
   .salon-hero {
@@ -341,7 +339,11 @@
   /* Booking Section */
   .booking-section {
     padding: 60px 0;
-    background: linear-gradient(135deg, rgba(200, 162, 200, 0.1), rgba(212, 175, 55, 0.05));
+    background: linear-gradient(
+      135deg,
+      rgba(200, 162, 200, 0.1),
+      rgba(212, 175, 55, 0.05)
+    );
   }
 
   .booking-card {
@@ -373,7 +375,12 @@
       height: auto;
       padding: 100px 0;
     }
-    
+
+    .salon-header-content {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
     .salon-rating {
       display: block;
       margin-left: 0;
@@ -385,11 +392,18 @@
 <!-- Salon Hero Section -->
 <section class="salon-hero">
   {% if salon.image %}
-  <img src="{{ salon.image.url }}" class="salon-hero-bg" alt="{{ salon.name }}">
+  <img
+    src="{{ salon.image.url }}"
+    class="salon-hero-bg"
+    alt="{{ salon.name }}"
+  />
   {% else %}
-  <div class="salon-hero-bg" style="background-color: var(--primary-color);"></div>
+  <div
+    class="salon-hero-bg"
+    style="background-color: var(--primary-color)"
+  ></div>
   {% endif %}
-  
+
   <div class="container">
     <div class="salon-header-content">
       <span class="salon-badge badge-{{ salon.status|lower }}">
@@ -398,33 +412,42 @@
       {% if salon.featured %}
       <span class="salon-badge badge-featured">Featured</span>
       {% endif %}
-      
+
       <h1 class="display-4 fw-bold mb-3">{{ salon.name }}</h1>
-      
+
       <div class="d-flex flex-wrap align-items-center mb-3">
-        <p class="lead mb-0"><i class="fas fa-map-marker-alt me-2"></i> {{ salon.address }}</p>
+        <p class="lead mb-0">
+          <i class="fas fa-map-marker-alt me-2"></i> {{ salon.address }}
+        </p>
         <div class="salon-rating">
           <span class="stars">
+            {% for i in "12345" %} {% if salon.average_rating >= forloop.counter %} 
             <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
+            {% elif salon.average_rating|add:0.5 >= forloop.counter %}
             <i class="fas fa-star-half-alt"></i>
+            {% else %}
+            <i class="far fa-star"></i>
+            {% endif %} {% endfor %}
           </span>
-          <span class="ms-2">4.7 (128 reviews)</span>
+          <span class="ms-2"
+            >{{ salon.average_rating|floatformat:1 }} ({{ salon.reviews.count }}
+            reviews)</span
+          >
         </div>
       </div>
-      
+
       <div class="salon-actions">
         <a href="#booking" class="btn btn-booking btn-lg me-3">
           <i class="fas fa-calendar-alt me-2"></i> Book Appointment
         </a>
-        <a href="#reviews" class="btn btn-outline-light btn-lg me-3">
+        {% if not user_review %}
+        <a href="#review-form" class="btn btn-outline-light btn-lg me-3">
           <i class="fas fa-star me-2"></i> Leave Review
         </a>
-        <a href="#" class="btn btn-outline-light btn-lg">
+        {% endif %}
+        <button class="btn btn-outline-light btn-lg" onclick="shareSalon()">
           <i class="fas fa-share-alt me-2"></i> Share
-        </a>
+        </button>
       </div>
     </div>
   </div>
@@ -442,64 +465,39 @@
           </div>
           <div class="info-card-body">
             <p>{{ salon.description }}</p>
-            
-            <div class="row mt-4">
-              <div class="col-md-6">
-                <div class="info-item">
-                  <div class="info-icon">
-                    <i class="fas fa-clock"></i>
-                  </div>
-                  <div>
-                    <h5>Working Hours</h5>
-                    <p class="mb-0">Monday - Friday: 9AM - 8PM<br>
-                    Saturday: 9AM - 6PM<br>
-                    Sunday: 10AM - 4PM</p>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="info-item">
-                  <div class="info-icon">
-                    <i class="fas fa-parking"></i>
-                  </div>
-                  <div>
-                    <h5>Parking</h5>
-                    <p class="mb-0">Free parking available<br>
-                    Valet service on weekends</p>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="info-item">
-                  <div class="info-icon">
-                    <i class="fas fa-wifi"></i>
-                  </div>
-                  <div>
-                    <h5>Amenities</h5>
-                    <p class="mb-0">Free WiFi<br>
-                    Complimentary drinks<br>
-                    Luxury waiting area</p>
+
+            <!-- Features -->
+            {% if salon.features.exists %}
+            <div class="mt-4">
+              <h5 class="mb-3">Our Features</h5>
+              <div class="row">
+                {% for feature in salon.features.all %}
+                <div class="col-md-6 mb-3">
+                  <div class="d-flex align-items-center">
+                    {% if feature.icon %}
+                    <i
+                      class="{{ feature.icon }} fa-2x me-3"
+                      style="color: var(--primary-color)"
+                    ></i>
+                    {% endif %}
+                    <div>
+                      <h6 class="mb-0">{{ feature.name }}</h6>
+                      {% if feature.description %}
+                      <small class="text-muted"
+                        >{{ feature.description }}</small
+                      >
+                      {% endif %}
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="col-md-6">
-                <div class="info-item">
-                  <div class="info-icon">
-                    <i class="fas fa-credit-card"></i>
-                  </div>
-                  <div>
-                    <h5>Payment Options</h5>
-                    <p class="mb-0">Cash, Credit Cards<br>
-                    Mobile Payments<br>
-                    Salon Gift Cards</p>
-                  </div>
-                </div>
+                {% endfor %}
               </div>
             </div>
+            {% endif %}
           </div>
         </div>
       </div>
-      
+
       <!-- Contact Info -->
       <div class="col-lg-4 mb-4">
         <div class="info-card">
@@ -513,20 +511,20 @@
               </div>
               <div>
                 <h5>Phone</h5>
-                <p class="mb-0">+1 (555) 123-4567</p>
+                <p class="mb-0">{{ salon.mobile }}</p>
               </div>
             </div>
-            
+
             <div class="info-item">
               <div class="info-icon">
                 <i class="fas fa-envelope"></i>
               </div>
               <div>
                 <h5>Email</h5>
-                <p class="mb-0">info@{{ salon.name|lower }}.com</p>
+                <p class="mb-0">{{ salon.email }}</p>
               </div>
             </div>
-            
+
             <div class="info-item">
               <div class="info-icon">
                 <i class="fas fa-map-marker-alt"></i>
@@ -534,24 +532,21 @@
               <div>
                 <h5>Location</h5>
                 <p class="mb-0">{{ salon.address }}</p>
-                <a href="#" class="text-primary">View on map</a>
+                <a href="#map" class="text-primary">View on map</a>
               </div>
             </div>
-            
+
+            {% if salon.working_hours %}
             <div class="info-item">
               <div class="info-icon">
-                <i class="fas fa-share-alt"></i>
+                <i class="fas fa-clock"></i>
               </div>
               <div>
-                <h5>Social Media</h5>
-                <div class="social-links mt-2">
-                  <a href="#" class="me-2"><i class="fab fa-facebook-f"></i></a>
-                  <a href="#" class="me-2"><i class="fab fa-instagram"></i></a>
-                  <a href="#" class="me-2"><i class="fab fa-twitter"></i></a>
-                  <a href="#"><i class="fab fa-pinterest"></i></a>
-                </div>
+                <h5>Working Hours</h5>
+                <p class="mb-0">{{ salon.working_hours }}</p>
               </div>
             </div>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -560,182 +555,113 @@
 </section>
 
 <!-- Gallery Section -->
+{% if salon.gallery_images.exists %}
 <section class="gallery-section">
   <div class="container">
     <div class="text-center mb-5">
       <h2 class="fw-bold">Our Salon Gallery</h2>
       <p class="text-muted">Take a look at our beautiful space and work</p>
     </div>
-    
+
     <div class="row">
-      {% for i in "123456" %}
-      <div class="col-md-4 col-sm-6">
+      {% for image in salon.gallery_images.all %}
+      <div class="col-md-4 col-sm-6 mb-4">
         <div class="gallery-item">
-          <img src="https://source.unsplash.com/random/600x400/?salon,beauty,{{ i }}" alt="Salon Image {{ i }}">
+          <img
+            src="{{ image.image.url }}"
+            class="img-fluid"
+            alt="Salon Image {{ forloop.counter }}"
+          />
           <div class="gallery-overlay">
-            <h5 class="mb-0">Salon Area {{ i }}</h5>
+            <h5 class="mb-0">{{ salon.name }} Gallery</h5>
           </div>
         </div>
       </div>
       {% endfor %}
     </div>
-    
-    <div class="text-center mt-4">
-      <a href="#" class="btn btn-primary">
-        <i class="fas fa-images me-2"></i> View Full Gallery
-      </a>
-    </div>
   </div>
 </section>
+{% endif %}
 
 <!-- Services Section -->
+{% if salon.services.exists %}
 <section class="services-section">
   <div class="container">
     <div class="text-center mb-5">
       <h2 class="fw-bold">Our Services</h2>
       <p class="text-muted">Professional beauty services tailored for you</p>
     </div>
-    
-    <div class="row">
-      <div class="col-md-6 col-lg-4">
-        <div class="service-card">
-          <div class="service-card-header">
-            <h5 class="mb-0">Haircut & Styling</h5>
-            <span class="service-price">$45+</span>
-          </div>
-          <div class="service-card-body">
-            <p>Professional haircut and styling with our expert stylists using premium products.</p>
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="service-duration"><i class="fas fa-clock me-1"></i> 45-60 min</span>
-              <a href="#booking" class="btn btn-sm btn-primary">Book Now</a>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="col-md-6 col-lg-4">
-        <div class="service-card">
-          <div class="service-card-header">
-            <h5 class="mb-0">Hair Coloring</h5>
-            <span class="service-price">$75+</span>
-          </div>
-          <div class="service-card-body">
-            <p>Full or partial hair coloring with ammonia-free dyes for vibrant, healthy-looking hair.</p>
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="service-duration"><i class="fas fa-clock me-1"></i> 90-120 min</span>
-              <a href="#booking" class="btn btn-sm btn-primary">Book Now</a>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="col-md-6 col-lg-4">
-        <div class="service-card">
-          <div class="service-card-header">
-            <h5 class="mb-0">Manicure & Pedicure</h5>
-            <span class="service-price">$35+</span>
-          </div>
-          <div class="service-card-body">
-            <p>Luxurious nail care treatment including shaping, cuticle care, and polish.</p>
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="service-duration"><i class="fas fa-clock me-1"></i> 60-75 min</span>
-              <a href="#booking" class="btn btn-sm btn-primary">Book Now</a>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="col-md-6 col-lg-4">
-        <div class="service-card">
-          <div class="service-card-header">
-            <h5 class="mb-0">Facial Treatment</h5>
-            <span class="service-price">$65+</span>
-          </div>
-          <div class="service-card-body">
-            <p>Customized facial treatment to cleanse, exfoliate, and nourish your skin.</p>
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="service-duration"><i class="fas fa-clock me-1"></i> 60 min</span>
-              <a href="#booking" class="btn btn-sm btn-primary">Book Now</a>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="col-md-6 col-lg-4">
-        <div class="service-card">
-          <div class="service-card-header">
-            <h5 class="mb-0">Waxing</h5>
-            <span class="service-price">$25+</span>
-          </div>
-          <div class="service-card-body">
-            <p>Professional waxing services for smooth, hair-free skin with minimal discomfort.</p>
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="service-duration"><i class="fas fa-clock me-1"></i> 30-45 min</span>
-              <a href="#booking" class="btn btn-sm btn-primary">Book Now</a>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="col-md-6 col-lg-4">
-        <div class="service-card">
-          <div class="service-card-header">
-            <h5 class="mb-0">Makeup Application</h5>
-            <span class="service-price">$55+</span>
-          </div>
-          <div class="service-card-body">
-            <p>Professional makeup application for any occasion using high-end cosmetics.</p>
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="service-duration"><i class="fas fa-clock me-1"></i> 45-60 min</span>
-              <a href="#booking" class="btn btn-sm btn-primary">Book Now</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="text-center mt-4">
-      <a href="#" class="btn btn-outline-primary">
-        <i class="fas fa-list me-2"></i> View All Services
-      </a>
-    </div>
-  </div>
-</section>
 
-<!-- Team Section -->
-<section class="team-section">
-  <div class="container">
-    <div class="text-center mb-5">
-      <h2 class="fw-bold">Meet Our Team</h2>
-      <p class="text-muted">Professional stylists dedicated to your beauty</p>
-    </div>
-    
     <div class="row">
-      {% for member in "1234" %}
-      <div class="col-md-6 col-lg-3">
-        <div class="team-card">
-          <img src="https://randomuser.me/api/portraits/women/{{ forloop.counter|add:30 }}.jpg" class="team-img" alt="Team Member">
-          <div class="team-info">
-            <h5>Stylist Name</h5>
-            <p class="text-muted mb-2">Hair Specialist</p>
-            <div class="team-social">
-              <a href="#"><i class="fab fa-instagram"></i></a>
-              <a href="#"><i class="fab fa-facebook-f"></i></a>
-              <a href="#"><i class="fab fa-twitter"></i></a>
+      {% for service in salon.services.all %}
+      <div class="col-md-6 col-lg-4 mb-4">
+        <div class="service-card">
+          <div class="service-card-header">
+            <h5 class="mb-0">{{ service.name }}</h5>
+            <span class="service-price">${{ service.price }}</span>
+          </div>
+          <div class="service-card-body">
+            {% if service.description %}
+            <p>{{ service.description|truncatewords:20 }}</p>
+            {% endif %}
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="service-duration">
+                <i class="fas fa-clock me-1"></i>
+                {{ service.duration }} min
+              </span>
+              <a
+                href="#booking"
+                class="btn btn-sm btn-primary"
+                onclick="preselectService('{{ service.id }}')"
+              >
+                Book Now
+              </a>
             </div>
           </div>
         </div>
       </div>
       {% endfor %}
     </div>
-    
-    <div class="text-center mt-4">
-      <a href="#" class="btn btn-primary">
-        <i class="fas fa-users me-2"></i> View Full Team
-      </a>
+  </div>
+</section>
+{% endif %}
+
+<!-- Team Section -->
+{% if salon.staff_members.exists %}
+<section class="team-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold">Meet Our Team</h2>
+      <p class="text-muted">Professional stylists dedicated to your beauty</p>
+    </div>
+
+    <div class="row">
+      {% for staff in salon.staff_members.all %}
+      <div class="col-md-6 col-lg-3 mb-4">
+        <div class="team-card">
+          {% if staff.profile_pic %}
+          <img
+            src="{{ staff.profile_pic.url }}"
+            class="team-img"
+            alt="{{ staff.user.get_full_name }}"
+          />
+          {% else %}
+          <img src="{% static 'images/default-profile.jpg' %}" class="team-img" alt="Staff member" />
+          {% endif %}
+          <div class="team-info">
+            <h5>{{ staff.user.get_full_name }}</h5>
+            <p class="text-muted mb-2">{{ staff.get_role_display }}</p>
+            {% if staff.bio %}
+            <p class="small">{{ staff.bio|truncatewords:15 }}</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
     </div>
   </div>
 </section>
+{% endif %}
 
 <!-- Reviews Section -->
 <section class="reviews-section" id="reviews">
@@ -744,77 +670,90 @@
       <h2 class="fw-bold">Customer Reviews</h2>
       <p class="text-muted">What our clients say about us</p>
     </div>
-    
+
     <div class="row">
+      {% for review in salon.reviews.all %}
       <div class="col-lg-4 mb-4">
         <div class="review-card">
           <div class="review-header">
-            <img src="https://randomuser.me/api/portraits/women/44.jpg" class="review-user" alt="User">
+            <img
+              src="{% if review.user.profile.image %}{{ review.user.profile.image.url }}{% else %}{% static 'images/default-profile.jpg' %}{% endif %}"
+              class="review-user"
+              alt="{{ review.user.get_full_name }}"
+            />
             <div>
               <div class="review-stars">
+                {% for i in "12345" %} {% if review.rating >= forloop.counter %}
                 <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-              </div>
-              <h6 class="mb-0">Sarah Johnson</h6>
-              <small class="review-date">2 weeks ago</small>
-            </div>
-          </div>
-          <p>"Absolutely love this salon! The atmosphere is so relaxing and the staff are incredibly talented. My hair has never looked better!"</p>
-        </div>
-      </div>
-      
-      <div class="col-lg-4 mb-4">
-        <div class="review-card">
-          <div class="review-header">
-            <img src="https://randomuser.me/api/portraits/men/32.jpg" class="review-user" alt="User">
-            <div>
-              <div class="review-stars">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star-half-alt"></i>
-              </div>
-              <h6 class="mb-0">Michael Brown</h6>
-              <small class="review-date">1 month ago</small>
-            </div>
-          </div>
-          <p>"Great experience from start to finish. The stylist listened to what I wanted and delivered exactly that. Will definitely be back!"</p>
-        </div>
-      </div>
-      
-      <div class="col-lg-4 mb-4">
-        <div class="review-card">
-          <div class="review-header">
-            <img src="https://randomuser.me/api/portraits/women/68.jpg" class="review-user" alt="User">
-            <div>
-              <div class="review-stars">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
+                {% else %}
                 <i class="far fa-star"></i>
+                {% endif %} {% endfor %}
               </div>
-              <h6 class="mb-0">Emily Davis</h6>
-              <small class="review-date">2 months ago</small>
+              <h6 class="mb-0">{{ review.user.get_full_name }}</h6>
+              <small class="review-date"
+                >{{ review.created_at|date:"F j, Y" }}</small
+              >
             </div>
           </div>
-          <p>"Beautiful salon with excellent service. The only reason I didn't give 5 stars is because my appointment started 10 minutes late."</p>
+          <p>{{ review.comment }}</p>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-12 text-center">
+        <p>No reviews yet. Be the first to review!</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if not user_review %}
+    <div class="row mt-5" id="review-form">
+      <div class="col-lg-6 mx-auto">
+        <div class="card">
+          <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Write a Review</h4>
+          </div>
+          <div class="card-body">
+            <form method="post" action="{% url 'salon:add_review' %}">
+              {% csrf_token %}
+              <div class="mb-3">
+                <label class="form-label">Rating</label>
+                <div class="rating-stars">
+                  {% for i in "54321" %}
+                  <input
+                    type="radio"
+                    id="star{{ i }}"
+                    name="rating"
+                    value="{{ i }}"
+                    {%
+                    if
+                    forloop.first
+                    %}checked{%
+                    endif
+                    %}
+                  />
+                  <label for="star{{ i }}"><i class="fas fa-star"></i></label>
+                  {% endfor %}
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="comment" class="form-label">Your Review</label>
+                <textarea
+                  class="form-control"
+                  id="comment"
+                  name="comment"
+                  rows="3"
+                  required
+                ></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">
+                Submit Review
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
-    
-    <div class="text-center mt-3">
-      <a href="#" class="btn btn-outline-primary me-3">
-        <i class="fas fa-star me-2"></i> Leave a Review
-      </a>
-      <a href="#" class="btn btn-primary">
-        <i class="fas fa-list me-2"></i> See All Reviews
-      </a>
-    </div>
+    {% endif %}
   </div>
 </section>
 
@@ -825,56 +764,79 @@
       <div class="col-lg-8">
         <div class="booking-card">
           <div class="booking-card-header">
-            <h3 class="mb-0"><i class="fas fa-calendar-alt me-2"></i> Book an Appointment</h3>
+            <h3 class="mb-0">
+              <i class="fas fa-calendar-alt me-2"></i> Book an Appointment
+            </h3>
           </div>
           <div class="booking-card-body">
-            <form>
+            <form method="post" action="{% url 'salon:booking_create' %}
+              {% csrf_token %}
               <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="name" class="form-label">Full Name</label>
-                  <input type="text" class="form-control" id="name" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label for="email" class="form-label">Email Address</label>
-                  <input type="email" class="form-control" id="email" required>
-                </div>
-              </div>
-              
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="phone" class="form-label">Phone Number</label>
-                  <input type="tel" class="form-control" id="phone" required>
-                </div>
                 <div class="col-md-6 mb-3">
                   <label for="service" class="form-label">Service</label>
-                  <select class="form-select" id="service" required>
+                  <select
+                    class="form-select"
+                    id="service"
+                    name="service"
+                    required
+                  >
                     <option value="" selected disabled>Select a service</option>
-                    <option>Haircut & Styling</option>
-                    <option>Hair Coloring</option>
-                    <option>Manicure & Pedicure</option>
-                    <option>Facial Treatment</option>
-                    <option>Waxing</option>
-                    <option>Makeup Application</option>
+                    {% for service in salon.services.all %}
+                    <option value="{{ service.id }}">
+                      {{ service.name }} (${{ service.price }})
+                    </option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="staff" class="form-label"
+                    >Preferred Staff (Optional)</label
+                  >
+                  <select class="form-select" id="staff" name="staff">
+                    <option value="">Any available staff</option>
+                    {% for staff in salon.staff_members.all %}
+                    <option value="{{ staff.id }}">
+                      {{ staff.user.get_full_name }} - {{ staff.get_role_display
+                      }}
+                    </option>
+                    {% endfor %}
                   </select>
                 </div>
               </div>
-              
+
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label for="date" class="form-label">Date</label>
-                  <input type="date" class="form-control" id="date" required>
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="date"
+                    name="date"
+                    required
+                  />
                 </div>
                 <div class="col-md-6 mb-3">
                   <label for="time" class="form-label">Time</label>
-                  <input type="time" class="form-control" id="time" required>
+                  <input
+                    type="time"
+                    class="form-control"
+                    id="time"
+                    name="time"
+                    required
+                  />
                 </div>
               </div>
-              
+
               <div class="mb-3">
                 <label for="notes" class="form-label">Special Requests</label>
-                <textarea class="form-control" id="notes" rows="3"></textarea>
+                <textarea
+                  class="form-control"
+                  id="notes"
+                  name="notes"
+                  rows="3"
+                ></textarea>
               </div>
-              
+
               <div class="d-grid">
                 <button type="submit" class="btn btn-primary btn-lg">
                   <i class="fas fa-calendar-check me-2"></i> Book Appointment
@@ -889,54 +851,92 @@
 </section>
 
 <!-- Map Section -->
-<section class="py-0">
+<section class="py-0" id="map">
   <div class="container-fluid px-0">
     <div class="ratio ratio-21x9">
-      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.215209179324!2d-73.98784492416406!3d40.75798597138961!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480299%3A0x55194ec5a1ae072e!2sTimes%20Square!5e0!3m2!1sen!2sus!4v1623251234567!5m2!1sen!2sus" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+      <iframe
+        src="https://maps.google.com/maps?q={{ salon.address|urlencode }}&output=embed"
+        width="600"
+        height="450"
+        style="border: 0"
+        allowfullscreen=""
+        loading="lazy"
+      ></iframe>
     </div>
   </div>
 </section>
 
 <script>
-  // Smooth scrolling for anchor links
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-      e.preventDefault();
-      
-      document.querySelector(this.getAttribute('href')).scrollIntoView({
-        behavior: 'smooth'
-      });
-    });
-  });
-  
-  // Initialize datepicker with available dates
-  document.addEventListener('DOMContentLoaded', function() {
-    const dateInput = document.getElementById('date');
+  // Initialize datepicker with salon working days
+  document.addEventListener("DOMContentLoaded", function () {
+    const dateInput = document.getElementById("date");
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    
+
     // Format dates for input (YYYY-MM-DD)
     const formatDate = (date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
+      return date.toISOString().split("T")[0];
     };
-    
+
     // Set min date to tomorrow
     dateInput.min = formatDate(tomorrow);
-    
+
     // Set max date to 3 months from now
     const maxDate = new Date(today);
     maxDate.setMonth(maxDate.getMonth() + 3);
     dateInput.max = formatDate(maxDate);
-    
-    // Initialize time slots based on salon hours
-    const timeInput = document.getElementById('time');
-    timeInput.min = '09:00';
-    timeInput.max = '19:30';
-    timeInput.step = '1800'; // 30 minutes in seconds
+
+    // Disable weekends if salon is closed
+    dateInput.addEventListener("input", function () {
+      const selectedDate = new Date(this.value);
+      const day = selectedDate.getDay();
+
+      // Example: Disable Sundays (0) and Saturdays (6)
+      if (day === 0 || day === 6) {
+        alert("Salon is closed on weekends. Please select a weekday.");
+        this.value = "";
+      }
+    });
+
+    // Time slots based on salon hours
+    const timeInput = document.getElementById("time");
+    timeInput.min = "09:00";
+    timeInput.max = "19:30";
+    timeInput.step = "1800"; // 30 minutes in seconds
+
+    // Preselect service if coming from service card
+    if (window.location.hash === "#booking") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const serviceId = urlParams.get("service");
+      if (serviceId) {
+        document.getElementById("service").value = serviceId;
+      }
+    }
   });
+
+  function preselectService(serviceId) {
+    window.location.href = `#booking?service=${serviceId}`;
+    document.getElementById("service").value = serviceId;
+    document.getElementById("service").scrollIntoView({ behavior: "smooth" });
+  }
+
+  function shareSalon() {
+    if (navigator.share) {
+      navigator
+        .share({
+          title: "Check out {{ salon.name }}",
+          text: "I found this amazing salon!",
+          url: window.location.href,
+        })
+        .catch((err) => {
+          console.log("Error sharing:", err);
+        });
+    } else {
+      // Fallback for browsers that don't support Web Share API
+      const shareUrl = `https://wa.me/?text=Check%20out%20{{ salon.name }}%20${window.location.href}`;
+      window.open(shareUrl, "_blank");
+    }
+  }
 </script>
 {% endblock %}

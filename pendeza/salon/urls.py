@@ -28,6 +28,8 @@ urlpatterns = [
   path('bookings/<int:pk>/payment/', views.PaymentStatusUpdateView.as_view(), name='payment_status_update'),
   path('bookings/calendar/', views.BookingCalendarView.as_view(), name='booking_calendar'),
   path('staff/availability/', views.StaffAvailabilityView.as_view(), name='staff_availability'),
+  path('add-review/', views.add_review, name='add_review'),  # Keep this if used elsewhere
+path('<slug:slug>/add-review/', views.add_review, name='salon_review_create'),  # Add this
 
 
 ]
