@@ -440,4 +440,101 @@ class StaffOnDuty(models.Model):
                 'style="object-fit: cover; border-radius: 50%;"/>'
             )
         return "No Image"
+
+    def get_profile_pic_url(self):
+        """Returns profile picture URL or None"""
+        if self.profile_pic and hasattr(self.profile_pic, 'url'):
+            return self.profile_pic.url
+        return None
     
+# ============================================
+# SALON REVIEWS
+# ============================================
+class SalonReview(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    salon = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='reviews')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
+    rating = models.PositiveIntegerField(default=0)
+    comment = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Salon Review"
+        verbose_name_plural = "Salon Reviews"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Review for {self.salon.name} by {self.user.get_full_name()}"
+    
+    def get_rating_display(self):
+        """Returns a string representation of the rating"""
+        return f"{self.rating} out of 5"
+    
+    def get_average_rating(self):
+        """Returns the average rating for the salon"""
+        reviews = self.salon.reviews.all()
+        if reviews.exists():
+            total_rating = sum(review.rating for review in reviews)
+            return total_rating / reviews.count()
+        return 0
+    
+    def get_review_count(self):
+        """Returns the total number of reviews for the salon"""
+        return self.salon.reviews.count()
+    
+    def get_user_review(self):
+        """Returns the review made by the user"""
+        return self.salon.reviews.filter(user=self.user).first()
+    
+    def get_review_summary(self):
+        """Returns a summary of the reviews for the salon"""
+        return {
+            'average_rating': self.get_average_rating(),
+            'review_count': self.get_review_count(),
+            'user_review': self.get_user_review()
+        }
+    
+# ============================================
+# SALON NOTIFICATIONS
+# ============================================
+class SalonNotification(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    salon = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='notifications')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Salon Notification"
+        verbose_name_plural = "Salon Notifications"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Notification for {self.salon.name} to {self.user.get_full_name()}"
+    
+    def get_notification_count(self):
+        """Returns the total number of notifications for the salon"""
+        return self.salon.notifications.count()
+    
+    def get_unread_notifications(self):
+        """Returns unread notifications for the user"""
+        return self.user.notifications.filter(is_read=False)
+    
+    def mark_as_read(self):
+        """Marks the notification as read"""
+        self.is_read = True
+        self.save()
+
+    def mark_all_as_read(self):
+        """Marks all notifications for the user as read"""
+        self.user.notifications.update(is_read=True)
+
+    def delete_notification(self):
+        """Deletes the notification"""
+        self.delete()
+
+    def delete_all_notifications(self):
+        """Deletes all notifications for the user"""
+        self.user.notifications.all().delete()
+
