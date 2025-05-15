@@ -1,64 +1,15 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from salon.models import Salon, SalonStatus, SalonGallery, SalonFeatures, SalonFaq, ServiceGender, ServiceCategory, SalonServices, BookingStatus, PaymentStatus, Booking, StaffRole, StaffStatus, StaffOnDuty
+from salon.models import Salon, SalonStatus, SalonGallery, SalonFeatures, SalonFaq, ServiceGender, ServiceCategory, SalonServices, BookingStatus, PaymentStatus, Booking, StaffRole, StaffStatus, StaffOnDuty, SalonNotification
+from django.contrib.auth.models import User
 
-class SalonAdmin(admin.ModelAdmin):
-    list_per_page = 25
-    date_hierarchy = 'date'
-    list_display = ['thumbnail', 'name', 'slug', 'user', 'status', 'featured', 'view_count', 'created_at']
-    list_display_links = ['thumbnail', 'name']
-    list_filter = ['status', 'featured', 'date']
-    search_fields = ['name', 'user__username', 'address']
-    fieldsets = (
-        ('Basic Information', {
-            'fields': ('name', 'user', 'status', 'featured')
-        }),
-        ('Content', {
-            'fields': ('description', 'image', 'tags')
-        }),
-        ('Contact Information', {
-            'fields': ('address', 'mobile', 'email')
-        }),
-        ('Metadata', {
-            'fields': ('views', 'date', 'updated_at'),
-            'classes': ('collapse',)  # Makes this section collapsible
-        })
-    )
-    readonly_fields = ['date', 'updated_at', 'view_count', 'slug']
-    actions = ['make_featured', 'make_live']
-    def thumbnail(self, obj):
-        if obj.image:
-            return format_html(
-                '<img src="{}" width="50" height="50" style="object-fit: cover; border-radius: 4px;"/>',
-                obj.image.url
-            )
-        return format_html(
-            '<img src="/static/images/default-salon.jpg" width="50" height="50" '
-            'style="object-fit: cover; border-radius: 4px; opacity: 0.5;"/>'
-        )
-    thumbnail.short_description = 'Image'
-    def view_count(self, obj):
-        return obj.views
-    view_count.short_description = 'Views'
-    def created_at(self, obj):
-        return obj.date.strftime("%Y-%m-%d %H:%M")
-    created_at.short_description = 'Created'
-    def make_featured(self, request, queryset):
-        queryset.update(featured=True)
-    make_featured.short_description = "Mark selected salons as featured"
-    
-    def make_live(self, request, queryset):
-        queryset.update(status='Live')  
-    make_live.short_description = "Mark selected salons as Live"
-
-admin.site.register(Salon, SalonAdmin)
 
 
 # ======================
 # SALON GALLERY ADMIN
 # ======================
-class SalonGalleryAdmin(admin.ModelAdmin):
-    list_display = ['salon', 'thumbnail', 'created_at']
+class SalonGalleryInline(admin.TabularInline):
+    model = SalonGallery
     list_filter = ['salon']
     search_fields = ['salon__name']
     list_per_page = 25
@@ -77,13 +28,12 @@ class SalonGalleryAdmin(admin.ModelAdmin):
         return obj.salon.date.strftime("%Y-%m-%d") if obj.salon.date else "-"
     created_at.short_description = 'Created'
 
-admin.site.register(SalonGallery, SalonGalleryAdmin)
 
 # ======================
 # SALON FEATURES ADMIN
 # ======================
-class SalonFeaturesAdmin(admin.ModelAdmin):
-    list_display = ['salon', 'icon_type', 'display_icon', 'is_active']
+class SalonFeaturesInline(admin.TabularInline):
+    model = SalonFeatures
     list_filter = ['icon_type', 'salon']
     search_fields = ['salon__name']
     list_editable = ['is_active']
@@ -95,13 +45,12 @@ class SalonFeaturesAdmin(admin.ModelAdmin):
         return "-"
     display_icon.short_description = 'Icon'
 
-admin.site.register(SalonFeatures, SalonFeaturesAdmin)
 
 # ======================
 # SALON FAQ ADMIN
 # ======================
-class SalonFaqAdmin(admin.ModelAdmin):
-    list_display = ['salon', 'truncated_question', 'is_active', 'created_at']
+class SalonFaqInline(admin.TabularInline):
+    model = SalonFaq
     list_filter = ['is_active', 'salon']
     search_fields = ['question', 'answer', 'salon__name']
     list_editable = ['is_active']
@@ -115,13 +64,12 @@ class SalonFaqAdmin(admin.ModelAdmin):
         return obj.date.strftime("%Y-%m-%d")
     created_at.short_description = 'Created'
 
-admin.site.register(SalonFaq, SalonFaqAdmin)
 
 # ======================
 # SALON SERVICES ADMIN
 # ======================
-class SalonServicesAdmin(admin.ModelAdmin):
-    list_display = ['name', 'salon', 'category', 'gender', 'price_display', 'is_active']
+class SalonServicesInline(admin.TabularInline):
+    model = SalonServices
     list_filter = ['category', 'gender', 'is_active', 'salon']
     search_fields = ['name', 'description', 'salon__name']
     list_editable = ['is_active']
@@ -166,38 +114,12 @@ class SalonServicesAdmin(admin.ModelAdmin):
         return "No Image"
     thumbnail.short_description = 'Preview'
 
-admin.site.register(SalonServices, SalonServicesAdmin)
-
-# ======================
-# BOOKING ADMIN
-# ======================
-class BookingAdmin(admin.ModelAdmin):
-    list_display = ['booking_id', 'salon', 'service', 'user', 'booking_date', 'time_slot', 'status', 'payment_status']
-    list_filter = ['status', 'payment_status', 'salon']
-    search_fields = ['user__username', 'service__name', 'salon__name']
-    list_per_page = 25
-    date_hierarchy = 'booking_date'
-    readonly_fields = ['total_amount_display']
-
-    def booking_id(self, obj):
-        return str(obj.id)[:8]  
-    booking_id.short_description = 'ID'
-    
-    def time_slot(self, obj):
-        return f"{obj.start_time.strftime('%H:%M')} - {obj.end_time.strftime('%H:%M')}" if obj.start_time and obj.end_time else "-"
-    time_slot.short_description = 'Time Slot'
-    
-    def total_amount_display(self, obj):
-        return f"${obj.total_amount}" if obj.total_amount else "-"
-    total_amount_display.short_description = 'Total Amount'
-
-admin.site.register(Booking, BookingAdmin)
 
 # ======================
 # STAFF ON DUTY ADMIN
 # ======================
-class StaffOnDutyAdmin(admin.ModelAdmin):
-    list_display = ['user', 'salon', 'role', 'status', 'is_active', 'thumbnail']
+class StaffOnDutyInline(admin.TabularInline):
+    model = StaffOnDuty
     list_filter = ['role', 'status', 'salon']
     search_fields = ['user__username', 'salon__name']
     list_per_page = 25
@@ -217,4 +139,179 @@ class StaffOnDutyAdmin(admin.ModelAdmin):
         return "No Image"
     thumbnail.short_description = 'Photo'
 
-admin.site.register(StaffOnDuty, StaffOnDutyAdmin)
+
+# ======================
+# SALON STATUS ADMIN
+# ======================
+class SalonStatusAdmin(admin.ModelAdmin):
+    list_display = ['salon', 'status', 'created_at']
+    model = SalonStatus
+    list_filter = ['status', 'salon']
+    search_fields = ['salon__name']
+    list_per_page = 25
+    readonly_fields = ['created_at']
+
+    def created_at(self, obj):
+        return obj.date.strftime("%Y-%m-%d") if obj.date else "-"
+    created_at.short_description = 'Created'
+
+# ======================
+# SERVICE GENDER ADMIN
+# ======================
+class ServiceGenderAdmin(admin.ModelAdmin):
+    model = ServiceGender
+    list_filter = ['name']
+    search_fields = ['name']
+    list_per_page = 25
+    readonly_fields = ['created_at']
+
+    def created_at(self, obj):
+        return obj.date.strftime("%Y-%m-%d") if obj.date else "-"
+    created_at.short_description = 'Created'
+
+
+# ======================
+# SERVICE CATEGORY ADMIN
+# ======================
+class ServiceCategoryAdmin(admin.ModelAdmin):
+    model = ServiceCategory
+    list_filter = ['name']
+    search_fields = ['name']
+    list_per_page = 25
+    readonly_fields = ['created_at']
+
+    def created_at(self, obj):
+        return obj.date.strftime("%Y-%m-%d") if obj.date else "-"
+    created_at.short_description = 'Created'
+
+
+# ======================
+# BOOKING STATUS ADMIN
+# ======================
+class BookingStatusAdmin(admin.ModelAdmin):
+    model = BookingStatus
+    list_filter = ['status', 'payment_status', 'salon']
+    search_fields = ['user__username', 'service__name', 'salon__name']
+    list_per_page = 25
+    date_hierarchy = 'booking_date'
+    readonly_fields = ['total_amount_display']
+
+    def booking_id(self, obj):
+        return str(obj.id)[:8]
+    booking_id.short_description = 'ID'
+
+    def time_slot(self, obj):
+        return f"{obj.start_time.strftime('%H:%M')} - {obj.end_time.strftime('%H:%M')}" if obj.start_time and obj.end_time else "-"
+    time_slot.short_description = 'Time Slot'
+
+    def total_amount_display(self, obj):
+        return f"${obj.total_amount}" if obj.total_amount else "-"
+    total_amount_display.short_description = 'Total Amount'
+
+
+
+# ======================
+# STAFF ROLE ADMIN
+# ======================
+class StaffRoleAdmin(admin.ModelAdmin):
+    model = StaffRole
+    list_filter = ['name']
+    search_fields = ['name']
+    list_per_page = 25
+    readonly_fields = ['created_at']
+
+    def created_at(self, obj):
+        return obj.date.strftime("%Y-%m-%d") if obj.date else "-"
+    created_at.short_description = 'Created'
+
+
+# ======================
+# STAFF STATUS ADMIN
+# ======================
+class StaffStatusAdmin(admin.ModelAdmin):
+    model = StaffStatus
+    list_filter = ['status', 'user']
+    search_fields = ['user__username']
+    list_per_page = 25
+    readonly_fields = ['created_at']
+
+    def created_at(self, obj):
+        return obj.date.strftime("%Y-%m-%d") if obj.date else "-"
+    created_at.short_description = 'Created'
+
+ 
+
+# ======================
+# PAYMENT STATUS ADMIN
+# ======================
+class PaymentStatusAdmin(admin.ModelAdmin):
+    model = PaymentStatus
+    list_filter = ['status']
+    search_fields = ['booking_id']
+    list_per_page = 25
+    readonly_fields = ['created_at']
+
+    def created_at(self, obj):
+        return obj.date.strftime("%Y-%m-%d") if obj.date else "-"
+    created_at.short_description = 'Created'
+
+
+# ======================
+# SALON ADMIN
+# ======================
+
+class SalonAdmin(admin.ModelAdmin):
+    inlines = [SalonGalleryInline, SalonFeaturesInline, SalonFaqInline, SalonServicesInline, StaffOnDutyInline, ]
+    model = Salon
+    list_per_page = 25
+    date_hierarchy = 'date'
+    list_display = ['thumbnail', 'name', 'slug', 'user', 'status', 'featured', 'views', 'date']
+    list_display_links = ['thumbnail', 'name']
+    list_filter = ['status', 'featured', 'date']
+    search_fields = ['name', 'user__username', 'address']
+    list_select_related = ['user']
+    autocomplete_fields = ['user']
+    raw_id_fields = ['tags']
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'user', 'status', 'featured')
+        }),
+        ('Content', {
+            'fields': ('description', 'image', 'tags')
+        }),
+        ('Contact Information', {
+            'fields': ('address', 'mobile', 'email')
+        }),
+        ('Metadata', {
+            'fields': ('views', 'date', 'updated_at'),
+            'classes': ('collapse',)  # Makes this section collapsible
+        })
+    )
+    readonly_fields = ['date', 'updated_at', 'view_count', 'slug']
+    actions = ['make_featured', 'make_live']
+    def thumbnail(self, obj):
+        if obj.image:
+            return format_html(
+                '<img src="{}" width="50" height="50" style="object-fit: cover; border-radius: 4px;"/>',
+                obj.image.url
+            )
+        return format_html(
+            '<img src="/static/images/default-salon.jpg" width="50" height="50" style="object-fit: cover; border-radius: 4px; opacity: 0.5;"/>'
+        )
+    thumbnail.short_description = 'Image'
+    def view_count(self, obj):
+        return obj.views
+    view_count.short_description = 'Views'
+    def created_at(self, obj):
+        return obj.date.strftime("%Y-%m-%d %H:%M")
+    created_at.short_description = 'Created'
+    def make_featured(self, request, queryset):
+        queryset.update(featured=True)
+    make_featured.short_description = "Mark selected salons as featured"
+    
+    def make_live(self, request, queryset):
+        queryset.update(status='Live')  
+    make_live.short_description = "Mark selected salons as Live"
+
+admin.site.register(Salon, SalonAdmin)
+

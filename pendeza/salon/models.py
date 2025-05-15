@@ -81,6 +81,10 @@ class Salon(models.Model):
             )
         return "No Image"
     
+    def salon_gallery(self):
+        """Returns the salon gallery images"""
+        return SalonGallery.objects.filter(salon=self)
+    
     def get_tags_list(self):
         """Returns tags as a list"""
         return [tag.name for tag in self.tags.all()]  # 
