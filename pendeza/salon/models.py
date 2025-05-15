@@ -96,6 +96,53 @@ class Salon(models.Model):
             return self.image.url
         return None
     
+class SalonWorkingHours(models.Model):
+    salon = models.OneToOneField(Salon, on_delete=models.CASCADE, related_name='working_hours')
+    monday_friday = models.CharField(
+        max_length=100, 
+        default="9AM - 8PM",
+        help_text="Format: 9AM - 8PM"
+    )
+    monday_friday = models.CharField(max_length=100, default="9AM - 8PM")
+    saturday = models.CharField(max_length=100, default="9AM - 6PM")
+    sunday = models.CharField(max_length=100, default="10AM - 4PM")
+    holidays = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return f"Working hours for {self.salon.name}"
+
+class SalonParking(models.Model):
+    salon = models.OneToOneField(Salon, on_delete=models.CASCADE, related_name='parking')
+    has_parking = models.BooleanField(default=True)
+    parking_details = models.TextField(blank=True)
+    valet_available = models.BooleanField(default=False)
+    valet_days = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return f"Parking info for {self.salon.name}"
+
+class SalonAmenity(models.Model):
+    salon = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='amenities')
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    icon = models.CharField(max_length=50, blank=True, 
+                           help_text="Font Awesome icon class (e.g. 'fa-wifi')")
+    is_featured = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name_plural = "Salon amenities"
+
+    def __str__(self):
+        return f"{self.name} at {self.salon.name}"
+
+class SalonPaymentOption(models.Model):
+    salon = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='payment_options')
+    method = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    is_available = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.method} at {self.salon.name}"
 
 # ============================================
 # SALON GALLERY, FEATURES AND FAQs

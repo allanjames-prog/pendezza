@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from salon.models import Salon, SalonStatus, SalonGallery, SalonFeatures, SalonFaq, ServiceGender, ServiceCategory, SalonServices, BookingStatus, PaymentStatus, Booking, StaffRole, StaffStatus, StaffOnDuty, SalonNotification
+from salon.models import Salon, SalonStatus, SalonGallery, SalonFeatures, SalonFaq, ServiceGender, ServiceCategory, SalonServices, BookingStatus, PaymentStatus, Booking, StaffRole, StaffStatus, StaffOnDuty, SalonNotification, SalonWorkingHours, SalonParking, SalonAmenity, SalonPaymentOption
 from django.contrib.auth.models import User
 
 
@@ -255,13 +255,46 @@ class PaymentStatusAdmin(admin.ModelAdmin):
         return obj.date.strftime("%Y-%m-%d") if obj.date else "-"
     created_at.short_description = 'Created'
 
+# ======================
+# INLINE ADMIN CLASSES
+# ======================
+
+class SalonWorkingHoursInline(admin.StackedInline):
+    model = SalonWorkingHours
+    extra = 0
+    max_num = 1
+    fields = ('monday_friday', 'saturday', 'sunday', 'holidays')
+    verbose_name = "Working Hours"
+    verbose_name_plural = "Working Hours"
+
+class SalonParkingInline(admin.StackedInline):
+    model = SalonParking
+    extra = 0
+    max_num = 1
+    fields = ('has_parking', 'parking_details', 'valet_available', 'valet_days')
+    verbose_name = "Parking Information"
+
+class SalonAmenityInline(admin.TabularInline):
+    model = SalonAmenity
+    extra = 1
+    fields = ('name', 'description', 'icon', 'is_featured')
+    verbose_name = "Amenity"
+    verbose_name_plural = "Amenities"
+
+class SalonPaymentOptionInline(admin.TabularInline):
+    model = SalonPaymentOption
+    extra = 1
+    fields = ('method', 'description', 'is_available')
+    verbose_name = "Payment Option"
+    verbose_name_plural = "Payment Options"
+
 
 # ======================
 # SALON ADMIN
 # ======================
 
 class SalonAdmin(admin.ModelAdmin):
-    inlines = [SalonGalleryInline, SalonFeaturesInline, SalonFaqInline, SalonServicesInline, StaffOnDutyInline, ]
+    inlines = [SalonGalleryInline, SalonFeaturesInline, SalonFaqInline, SalonServicesInline, StaffOnDutyInline, SalonWorkingHoursInline, SalonParkingInline, SalonAmenityInline, SalonPaymentOptionInline]
     model = Salon
     list_per_page = 25
     date_hierarchy = 'date'

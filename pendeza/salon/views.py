@@ -16,6 +16,18 @@ from userauthentication.models import User
 from datetime import datetime, timedelta
 from django.urls import reverse
 
+from django.views.generic import View
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+from django.forms.models import model_to_dict
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from .models import Salon, SalonServices
+from .forms import SalonServiceForm
+import json
+
+
 # Import json for JSON responses
 import json
 
@@ -318,242 +330,172 @@ class SalonFaqDeleteView(LoginRequiredMixin, View):
         
         return JsonResponse({'success': True, 'message': 'FAQ deleted successfully'})
     
+
 # ===============================================
-# SALON SERVICES
+# SALON SERVICES API VIEW
 # ===============================================
-
-# ========== SALON SERVICES VIEW ==========
-class SalonServicesView(LoginRequiredMixin, View):
-    def post(self, request, slug):
-        salon = get_object_or_404(Salon, slug=slug)
-        
-        # Check if the current user owns the salon
-        if request.user != salon.user:
-            return JsonResponse({'error': 'You do not have permission to add services to this salon'}, status=403)
-        
-        service_name = request.POST.get('service_name')
-        service_description = request.POST.get('service_description')
-        service_price = request.POST.get('service_price')
-        service_duration = request.POST.get('service_duration')
-
-        if service_name and service_description and service_price and service_duration:
-            service = SalonServices(salon=salon, name=service_name, description=service_description, price=service_price, duration=service_duration)
-            service.save()
-            return JsonResponse({'success': True, 'message': 'Service added successfully'})
-
-        return JsonResponse({'error': 'Invalid data'}, status=400)
-
-# ========== SALON SERVICES UPDATE VIEW ==========
-class SalonServicesUpdateView(LoginRequiredMixin, View):
-    def post(self, request, slug, service_id):
-        salon = get_object_or_404(Salon, slug=slug)
-        
-        # Check if the current user owns the salon
-        if request.user != salon.user:
-            return JsonResponse({'error': 'You do not have permission to update services of this salon'}, status=403)
-        
-        service = get_object_or_404(SalonServices, id=service_id, salon=salon)
-        
-        service_name = request.POST.get('service_name')
-        service_description = request.POST.get('service_description')
-        service_price = request.POST.get('service_price')
-        service_duration = request.POST.get('service_duration')
-
-        if service_name and service_description and service_price and service_duration:
-            service.name = service_name
-            service.description = service_description
-            service.price = service_price
-            service.duration = service_duration
-            service.save()
-            return JsonResponse({'success': True, 'message': 'Service updated successfully'})
-
-        return JsonResponse({'error': 'Invalid data'}, status=400)
+@method_decorator(csrf_exempt, name='dispatch')
+class SalonServiceAPIView(LoginRequiredMixin, View):
+    """Handles all service CRUD operations in one view"""
     
-# ========== SALON SERVICES DELETE VIEW ==========
-class SalonServicesDeleteView(LoginRequiredMixin, View):
-    def post(self, request, slug, service_id):
+    def get(self, request, slug, service_id=None):
+        """
+        GET: Retrieve single service or list of all services
+        - /salon/<slug>/services/ (list all)
+        - /salon/<slug>/services/<service_id>/ (single service)
+        """
         salon = get_object_or_404(Salon, slug=slug)
         
-        # Check if the current user owns the salon
-        if request.user != salon.user:
-            return JsonResponse({'error': 'You do not have permission to delete services of this salon'}, status=403)
+        # Verify ownership
+        if request.user != salon.user and not request.user.is_staff:
+            return JsonResponse({'error': 'Permission denied'}, status=403)
         
-        service = get_object_or_404(SalonServices, id=service_id, salon=salon)
-        service.delete()
-        
-        return JsonResponse({'success': True, 'message': 'Service deleted successfully'})
-
-# ========== SALON SERVICES STATUS UPDATE VIEW ==========
-class SalonServicesStatusUpdateView(LoginRequiredMixin, View):
-    def post(self, request, slug, service_id):
-        salon = get_object_or_404(Salon, slug=slug)
-        
-        # Check if the current user owns the salon
-        if request.user != salon.user:
-            return JsonResponse({'error': 'You do not have permission to update services of this salon'}, status=403)
-        
-        service = get_object_or_404(SalonServices, id=service_id, salon=salon)
-        
-        is_active = request.POST.get('is_active') == 'true'
-        
-        service.is_active = is_active
-        service.save()
-        
-        return JsonResponse({'success': True, 'message': 'Service status updated successfully'})
-
-# ========== SALON SERVICES ORDER UPDATE VIEW ==========
-class SalonServicesOrderUpdateView(LoginRequiredMixin, View):
-    def post(self, request, slug):
-        salon = get_object_or_404(Salon, slug=slug)
-        
-        # Check if the current user owns the salon
-        if request.user != salon.user:
-            return JsonResponse({'error': 'You do not have permission to update services order of this salon'}, status=403)
-        
-        service_ids = request.POST.getlist('service_ids[]')
-        
-        for index, service_id in enumerate(service_ids):
+        if service_id:  # Single service
             service = get_object_or_404(SalonServices, id=service_id, salon=salon)
-            service.order = index
-            service.save()
-        
-        return JsonResponse({'success': True, 'message': 'Service order updated successfully'})
-
-# ========== SALON SERVICES CATEGORY VIEW ==========
-class SalonServicesCategoryView(LoginRequiredMixin, View):
+            data = {
+                'id': service.id,
+                'name': service.name,
+                'description': service.description,
+                'base_price': str(service.base_price),
+                'women_price': str(service.women_price) if service.women_price else None,
+                'men_price': str(service.men_price) if service.men_price else None,
+                'children_price': str(service.children_price) if service.children_price else None,
+                'duration': service.duration,
+                'category': service.category,
+                'category_display': service.get_category_display(),
+                'gender': service.gender,
+                'gender_display': service.get_gender_display(),
+                'is_featured': service.is_featured,
+                'is_active': service.is_active,
+                'icon': service.icon,
+                'created_at': service.created_at.isoformat(),
+            }
+            return JsonResponse(data)
+        else:  # All services
+            services = salon.services.all().order_by('category', 'name')
+            services_data = [{
+                'id': s.id,
+                'name': s.name,
+                'base_price': str(s.base_price),
+                'duration': s.duration,
+                'category': s.get_category_display(),
+                'is_active': s.is_active
+            } for s in services]
+            return JsonResponse(services_data, safe=False)
+    
     def post(self, request, slug):
+        """
+        POST: Create new service
+        - /salon/<slug>/services/
+        """
+        if not request.META.get('HTTP_X_CSRFTOKEN') == request.COOKIES.get('csrftoken'):
+            return JsonResponse({'error': 'CSRF verification failed'}, status=403)
         salon = get_object_or_404(Salon, slug=slug)
         
-        # Check if the current user owns the salon
         if request.user != salon.user:
-            return JsonResponse({'error': 'You do not have permission to add categories to this salon'}, status=403)
+            return JsonResponse({'error': 'Permission denied'}, status=403)
         
-        category_name = request.POST.get('category_name')
-        
-        if category_name:
-            category = ServiceCategory(name=category_name)
-            category.save()
-            return JsonResponse({'success': True, 'message': 'Category added successfully'})
-        
-        return JsonResponse({'error': 'Invalid data'}, status=400)
-
-# ========== SALON SERVICES CATEGORY UPDATE VIEW ==========
-class SalonServicesCategoryUpdateView(LoginRequiredMixin, View):
-    def post(self, request, slug, category_id):
+        try:
+            data = json.loads(request.body)
+            form = SalonServiceForm(data)
+            
+            if form.is_valid():
+                service = form.save(commit=False)
+                service.salon = salon
+                service.save()
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Service created successfully',
+                    'service_id': service.id
+                }, status=201)
+            return JsonResponse({
+                'error': 'Invalid data',
+                'details': form.errors
+            }, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    
+    def put(self, request, slug, service_id):
+        """
+        PUT: Update existing service
+        - /salon/<slug>/services/<service_id>/
+        """
+        if not request.META.get('HTTP_X_CSRFTOKEN') == request.COOKIES.get('csrftoken'):
+            return JsonResponse({'error': 'CSRF verification failed'}, status=403)
         salon = get_object_or_404(Salon, slug=slug)
+        service = get_object_or_404(SalonServices, id=service_id, salon=salon)
         
-        # Check if the current user owns the salon
         if request.user != salon.user:
-            return JsonResponse({'error': 'You do not have permission to update categories of this salon'}, status=403)
+            return JsonResponse({'error': 'Permission denied'}, status=403)
         
-        category = get_object_or_404(ServiceCategory, id=category_id)
-
-        category_name = request.POST.get('category_name')
-
-        if category_name:
-            category.name = category_name
-            category.save()
-            return JsonResponse({'success': True, 'message': 'Category updated successfully'})
-
-        return JsonResponse({'error': 'Invalid data'}, status=400)
-
-# ========== SALON SERVICES CATEGORY DELETE VIEW ==========
-class SalonServicesCategoryDeleteView(LoginRequiredMixin, View):
-    def post(self, request, slug, category_id):
+        try:
+            data = json.loads(request.body)
+            form = SalonServiceForm(data, instance=service)
+            
+            if form.is_valid():
+                form.save()
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Service updated successfully'
+                })
+            return JsonResponse({
+                'error': 'Invalid data',
+                'details': form.errors
+            }, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    
+    def patch(self, request, slug, service_id):
+        """
+        PATCH: Partial update of service (e.g., status toggle)
+        - /salon/<slug>/services/<service_id>/
+        """
+        if not request.META.get('HTTP_X_CSRFTOKEN') == request.COOKIES.get('csrftoken'):
+            return JsonResponse({'error': 'CSRF verification failed'}, status=403)
         salon = get_object_or_404(Salon, slug=slug)
+        service = get_object_or_404(SalonServices, id=service_id, salon=salon)
         
-        # Check if the current user owns the salon
         if request.user != salon.user:
-            return JsonResponse({'error': 'You do not have permission to delete categories of this salon'}, status=403)
+            return JsonResponse({'error': 'Permission denied'}, status=403)
         
-        category = get_object_or_404(ServiceCategory, id=category_id)
-        category.delete()
-        
-        return JsonResponse({'success': True, 'message': 'Category deleted successfully'})
-
-# ========== SALON SERVICES CATEGORY STATUS UPDATE VIEW ==========
-class SalonServicesCategoryStatusUpdateView(LoginRequiredMixin, View):  
-    def post(self, request, slug, category_id):
+        try:
+            data = json.loads(request.body)
+            
+            # Handle status toggle
+            if 'is_active' in data:
+                service.is_active = data['is_active']
+                service.save()
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Service status updated',
+                    'is_active': service.is_active
+                })
+            
+            return JsonResponse({
+                'error': 'No valid fields to update'
+            }, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    
+    def delete(self, request, slug, service_id):
+        """
+        DELETE: Remove a service
+        - /salon/<slug>/services/<service_id>/
+        """
+        if not request.META.get('HTTP_X_CSRFTOKEN') == request.COOKIES.get('csrftoken'):
+            return JsonResponse({'error': 'CSRF verification failed'}, status=403)
         salon = get_object_or_404(Salon, slug=slug)
+        service = get_object_or_404(SalonServices, id=service_id, salon=salon)
         
-        # Check if the current user owns the salon
         if request.user != salon.user:
-            return JsonResponse({'error': 'You do not have permission to update categories status of this salon'}, status=403)
+            return JsonResponse({'error': 'Permission denied'}, status=403)
         
-        category = get_object_or_404(ServiceCategory, id=category_id)
-        
-        is_active = request.POST.get('is_active') == 'true'
-        
-        category.is_active = is_active
-        category.save()
-        
-        return JsonResponse({'success': True, 'message': 'Category status updated successfully'})
+        service.delete()
+        return JsonResponse({
+            'success': True,
+            'message': 'Service deleted successfully'
+        }, status=204)
 
-# ========== SALON SERVICES CATEGORY ORDER UPDATE VIEW ==========
-class SalonServicesCategoryOrderUpdateView(LoginRequiredMixin, View):
-    def post(self, request, slug):
-        salon = get_object_or_404(Salon, slug=slug)
-        
-        # Check if the current user owns the salon
-        if request.user != salon.user:
-            return JsonResponse({'error': 'You do not have permission to update categories order of this salon'}, status=403)
-        
-        category_ids = request.POST.getlist('category_ids[]')
-        for index, category_id in enumerate(category_ids):
-            category = get_object_or_404(ServiceCategory, id=category_id)
-            category.order = index
-            category.save()
-        return JsonResponse({'success': True, 'message': 'Category order updated successfully'})
-
-# ========== SALON SERVICES GENDER VIEW ==========
-class SalonServicesGenderView(LoginRequiredMixin, View):
-    def post(self, request, slug):
-        salon = get_object_or_404(Salon, slug=slug)
-
-        # Check if the current user owns the salon
-        if request.user != salon.user:
-            return JsonResponse({'error': 'You do not have permission to update gender of this salon'}, status=403)
-
-        gender = request.POST.get('gender')
-
-        if gender:
-            salon.gender = gender
-            salon.save()
-            return JsonResponse({'success': True, 'message': 'Gender updated successfully'})
-
-        return JsonResponse({'error': 'Invalid data'}, status=400)
-
-# ========== SALON SERVICES GENDER UPDATE VIEW ==========
-class SalonServicesGenderUpdateView(LoginRequiredMixin, View):
-    def post(self, request, slug):
-        salon = get_object_or_404(Salon, slug=slug)
-
-        # Check if the current user owns the salon
-        if request.user != salon.user:
-            return JsonResponse({'error': 'You do not have permission to update gender of this salon'}, status=403)
-
-        gender = request.POST.get('gender')
-
-        if gender:
-            salon.gender = gender
-            salon.save()
-            return JsonResponse({'success': True, 'message': 'Gender updated successfully'})
-
-        return JsonResponse({'error': 'Invalid data'}, status=400)
-
-# ========== SALON SERVICES GENDER DELETE VIEW ==========
-class SalonServicesGenderDeleteView(LoginRequiredMixin, View):
-    def post(self, request, slug):
-        salon = get_object_or_404(Salon, slug=slug)
-
-        # Check if the current user owns the salon
-        if request.user != salon.user:
-            return JsonResponse({'error': 'You do not have permission to delete gender of this salon'}, status=403)
-
-        salon.gender = None
-        salon.save()
-
-        return JsonResponse({'success': True, 'message': 'Gender deleted successfully'})    
 
 # ============================================
 # BOOKING AND PAYMENT STATUS VIEWS

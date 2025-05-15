@@ -381,6 +381,53 @@ Pendeza Salon{% endblock %} {% block content %}
       margin-top: 10px;
     }
   }
+
+  @media (max-width: 576px) {
+    .salon-header-content {
+      text-align: center;
+    }
+
+    .salon-actions {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .btn-booking {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+  }
+
+  /* Loading Spinner */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Service Card Hover Effect */
+.service-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* Featured Badge */
+.featured-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #ffc107;
+  color: #000;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  z-index: 1;
+}
 </style>
 
 <!-- Salon Hero Section -->
@@ -444,80 +491,127 @@ Pendeza Salon{% endblock %} {% block content %}
 <section class="salon-info-section">
   <div class="container">
     <div class="row">
-      <!-- About Salon -->
-      <div class="col-lg-8 mb-4">
-        <div class="info-card">
-          <div class="info-card-header">
-            <i class="fas fa-info-circle me-2"></i> About Our Salon
-          </div>
-          <div class="info-card-body">
-            <p>{{ salon.description }}</p>
+      
 
-            <div class="row mt-4">
-              <div class="col-md-6">
-                <div class="info-item">
-                  <div class="info-icon">
-                    <i class="fas fa-clock"></i>
-                  </div>
-                  <div>
-                    <h5>Working Hours</h5>
-                    <p class="mb-0">
-                      Monday - Friday: 9AM - 8PM<br />
-                      Saturday: 9AM - 6PM<br />
-                      Sunday: 10AM - 4PM
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="info-item">
-                  <div class="info-icon">
-                    <i class="fas fa-parking"></i>
-                  </div>
-                  <div>
-                    <h5>Parking</h5>
-                    <p class="mb-0">
-                      Free parking available<br />
-                      Valet service on weekends
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="info-item">
-                  <div class="info-icon">
-                    <i class="fas fa-wifi"></i>
-                  </div>
-                  <div>
-                    <h5>Amenities</h5>
-                    <p class="mb-0">
-                      Free WiFi<br />
-                      Complimentary drinks<br />
-                      Luxury waiting area
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="info-item">
-                  <div class="info-icon">
-                    <i class="fas fa-credit-card"></i>
-                  </div>
-                  <div>
-                    <h5>Payment Options</h5>
-                    <p class="mb-0">
-                      Cash, Credit Cards<br />
-                      Mobile Payments<br />
-                      Salon Gift Cards
-                    </p>
-                  </div>
-                </div>
-              </div>
+      <!-- About Salon -->
+<div class="col-lg-8 mb-4">
+  <div class="info-card">
+    <div class="info-card-header">
+      <i class="fas fa-info-circle me-2"></i> About This Salon
+    </div>
+    <div class="info-card-body">
+      {% if salon.description %}
+        <p>{{ salon.description }}</p>
+      {% else %}
+        <p class="text-muted">No description available</p>
+      {% endif %}
+
+      <div class="row mt-4">
+        <!-- Working Hours -->
+        <div class="col-md-6 mb-4">
+          <div class="info-item">
+            <div class="info-icon">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div>
+              <h5>Working Hours</h5>
+              <p class="mb-0">
+                {% if salon.working_hours %}
+                  Monday - Friday: {{ salon.working_hours.monday_friday|default:"Not specified" }}<br>
+                  Saturday: {{ salon.working_hours.saturday|default:"Not specified" }}<br>
+                  Sunday: {{ salon.working_hours.sunday|default:"Not specified" }}
+                  {% if salon.working_hours.holidays %}<br>Holidays: {{ salon.working_hours.holidays }}{% endif %}
+                {% else %}
+                  Hours not specified
+                {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Parking -->
+        <div class="col-md-6 mb-4">
+          <div class="info-item">
+            <div class="info-icon">
+              <i class="fas fa-parking"></i>
+            </div>
+            <div>
+              <h5>Parking</h5>
+              <p class="mb-0">
+                {% if salon.parking %}
+                  {% if salon.parking.has_parking %}
+                    {{ salon.parking.parking_details|default:"Free parking available" }}<br>
+                    {% if salon.parking.valet_available %}
+                      Valet service {% if salon.parking.valet_days %}({{ salon.parking.valet_days }}){% else %}available{% endif %}
+                    {% endif %}
+                  {% else %}
+                    No parking available
+                  {% endif %}
+                {% else %}
+                  Parking information not available
+                {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Amenities -->
+        <div class="col-md-6 mb-4">
+          <div class="info-item">
+            <div class="info-icon">
+              <i class="fas fa-wifi"></i>
+            </div>
+            <div>
+              <h5>Amenities</h5>
+              <p class="mb-0">
+                {% if salon.amenities.exists %}
+                  {% for amenity in salon.amenities.all|slice:":3" %}
+                    <i class="{{ amenity.icon|default:'fas fa-check' }} me-1"></i>
+                    {% if amenity.is_featured %}<strong>{% endif %}
+                    {{ amenity.name }}
+                    {% if amenity.is_featured %}</strong>{% endif %}
+                    {% if not forloop.last %}<br>{% endif %}
+                  {% endfor %}
+                  {% if salon.amenities.count > 3 %}
+                    <br>+{{ salon.amenities.count|add:"-3" }} more amenities
+                  {% endif %}
+                {% else %}
+                  No amenities listed
+                {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Options -->
+        <div class="col-md-6 mb-4">
+          <div class="info-item">
+            <div class="info-icon">
+              <i class="fas fa-credit-card"></i>
+            </div>
+            <div>
+              <h5>Payment Options</h5>
+              <p class="mb-0">
+                {% if salon.payment_options.exists %}
+                  {% for option in salon.payment_options.all|slice:":3" %}
+                    {{ option.method }}
+                    {% if not option.is_available %} (Currently unavailable){% endif %}
+                    {% if not forloop.last %}<br>{% endif %}
+                  {% endfor %}
+                  {% if salon.payment_options.count > 3 %}
+                    <br>+{{ salon.payment_options.count|add:"-3" }} more options
+                  {% endif %}
+                {% else %}
+                  Cash only
+                {% endif %}
+              </p>
             </div>
           </div>
         </div>
       </div>
-
+    </div>
+  </div>
+</div>
       <!-- Contact Info -->
       <div class="col-lg-4 mb-4">
         <div class="info-card">
@@ -607,148 +701,49 @@ Pendeza Salon{% endblock %} {% block content %}
 </section>
 
 <!-- Services Section -->
-<section class="services-section">
+<section class="services-section" id="services">
   <div class="container">
     <div class="text-center mb-5">
       <h2 class="fw-bold">Our Services</h2>
       <p class="text-muted">Professional beauty services tailored for you</p>
     </div>
 
-    <div class="row">
-      <div class="col-md-6 col-lg-4">
-        <div class="service-card">
-          <div class="service-card-header">
-            <h5 class="mb-0">Haircut & Styling</h5>
-            <span class="service-price">$45+</span>
-          </div>
-          <div class="service-card-body">
-            <p>
-              Professional haircut and styling with our expert stylists using
-              premium products.
-            </p>
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="service-duration"
-                ><i class="fas fa-clock me-1"></i> 45-60 min</span
-              >
-              <a href="#booking" class="btn btn-sm btn-primary">Book Now</a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-6 col-lg-4">
-        <div class="service-card">
-          <div class="service-card-header">
-            <h5 class="mb-0">Hair Coloring</h5>
-            <span class="service-price">$75+</span>
-          </div>
-          <div class="service-card-body">
-            <p>
-              Full or partial hair coloring with ammonia-free dyes for vibrant,
-              healthy-looking hair.
-            </p>
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="service-duration"
-                ><i class="fas fa-clock me-1"></i> 90-120 min</span
-              >
-              <a href="#booking" class="btn btn-sm btn-primary">Book Now</a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-6 col-lg-4">
-        <div class="service-card">
-          <div class="service-card-header">
-            <h5 class="mb-0">Manicure & Pedicure</h5>
-            <span class="service-price">$35+</span>
-          </div>
-          <div class="service-card-body">
-            <p>
-              Luxurious nail care treatment including shaping, cuticle care, and
-              polish.
-            </p>
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="service-duration"
-                ><i class="fas fa-clock me-1"></i> 60-75 min</span
-              >
-              <a href="#booking" class="btn btn-sm btn-primary">Book Now</a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-6 col-lg-4">
-        <div class="service-card">
-          <div class="service-card-header">
-            <h5 class="mb-0">Facial Treatment</h5>
-            <span class="service-price">$65+</span>
-          </div>
-          <div class="service-card-body">
-            <p>
-              Customized facial treatment to cleanse, exfoliate, and nourish
-              your skin.
-            </p>
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="service-duration"
-                ><i class="fas fa-clock me-1"></i> 60 min</span
-              >
-              <a href="#booking" class="btn btn-sm btn-primary">Book Now</a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-6 col-lg-4">
-        <div class="service-card">
-          <div class="service-card-header">
-            <h5 class="mb-0">Waxing</h5>
-            <span class="service-price">$25+</span>
-          </div>
-          <div class="service-card-body">
-            <p>
-              Professional waxing services for smooth, hair-free skin with
-              minimal discomfort.
-            </p>
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="service-duration"
-                ><i class="fas fa-clock me-1"></i> 30-45 min</span
-              >
-              <a href="#booking" class="btn btn-sm btn-primary">Book Now</a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-6 col-lg-4">
-        <div class="service-card">
-          <div class="service-card-header">
-            <h5 class="mb-0">Makeup Application</h5>
-            <span class="service-price">$55+</span>
-          </div>
-          <div class="service-card-body">
-            <p>
-              Professional makeup application for any occasion using high-end
-              cosmetics.
-            </p>
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="service-duration"
-                ><i class="fas fa-clock me-1"></i> 45-60 min</span
-              >
-              <a href="#booking" class="btn btn-sm btn-primary">Book Now</a>
-            </div>
-          </div>
+    <!-- Services will be loaded here dynamically -->
+    <div class="row" id="services-container">
+      <div class="col-12 text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
         </div>
       </div>
     </div>
 
-    <div class="text-center mt-4">
-      <a href="#" class="btn btn-outline-primary">
+    <div class="text-center mt-4 d-none" id="view-all-btn">
+      <a href="#all-services" class="btn btn-outline-primary">
         <i class="fas fa-list me-2"></i> View All Services
       </a>
     </div>
   </div>
 </section>
+
+<!-- Service Detail Modal -->
+<div class="modal fade" id="serviceModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="serviceModalTitle"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="serviceModalBody">
+        <!-- Content will be loaded dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <a href="#booking" class="btn btn-primary">Book Now</a>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <!-- Team Section -->
 <section class="team-section">
@@ -1025,5 +1020,133 @@ Pendeza Salon{% endblock %} {% block content %}
     timeInput.max = "19:30";
     timeInput.step = "1800"; // 30 minutes in seconds
   });
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Fetch services from API
+  fetch(`/salon/{{ salon.slug }}/services/`)
+    .then(response => response.json())
+    .then(services => {
+      const container = document.getElementById('services-container');
+      container.innerHTML = '';
+      
+      if (services.length === 0) {
+        container.innerHTML = `
+          <div class="col-12 text-center">
+            <p class="text-muted">No services available at this time</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Display active services
+      const activeServices = services.filter(service => service.is_active);
+      
+      activeServices.slice(0, 6).forEach(service => {
+        const price = service.gender === 'Unisex' ? 
+          `$${service.base_price}+` : 
+          `From $${service.base_price}+`;
+        
+        const featuredBadge = service.is_featured ? 
+          `<div class="featured-badge">Featured</div>` : '';
+        
+        const icon = service.icon ? 
+          `<i class="${service.icon} me-2"></i>` : '';
+        
+        container.innerHTML += `
+          <div class="col-md-6 col-lg-4 mb-4">
+            <div class="service-card h-100" data-service-id="${service.id}">
+              ${featuredBadge}
+              <div class="service-card-header">
+                <h5 class="mb-0">
+                  ${icon}
+                  ${service.name}
+                </h5>
+                <span class="service-price">${price}</span>
+              </div>
+              <div class="service-card-body">
+                ${service.description ? `<p>${service.description}</p>` : ''}
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                  <span class="service-duration">
+                    <i class="fas fa-clock me-1"></i>
+                    ${service.duration} min
+                  </span>
+                  <span class="service-category badge bg-light text-dark">
+                    ${service.category_display}
+                  </span>
+                  <button class="btn btn-sm btn-primary view-details" 
+                          data-service-id="${service.id}">
+                    Details
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      // Show "View All" button if more than 6 services
+      if (activeServices.length > 6) {
+        document.getElementById('view-all-btn').classList.remove('d-none');
+      }
+
+      // Add event listeners for detail buttons
+      document.querySelectorAll('.view-details').forEach(button => {
+        button.addEventListener('click', function() {
+          const serviceId = this.getAttribute('data-service-id');
+          showServiceDetails(serviceId);
+        });
+      });
+    })
+    .catch(error => {
+      console.error('Error loading services:', error);
+      document.getElementById('services-container').innerHTML = `
+        <div class="col-12 text-center">
+          <p class="text-danger">Error loading services. Please try again later.</p>
+        </div>
+      `;
+    });
+
+  // Function to show service details in modal
+  function showServiceDetails(serviceId) {
+    fetch(`/salon/{{ salon.slug }}/services/${serviceId}/`)
+      .then(response => response.json())
+      .then(service => {
+        document.getElementById('serviceModalTitle').textContent = service.name;
+        
+        const priceInfo = service.women_price || service.men_price || service.children_price ?
+          `
+          <p><strong>Pricing:</strong><br>
+          Base: $${service.base_price}<br>
+          ${service.women_price ? `Women: $${service.women_price}<br>` : ''}
+          ${service.men_price ? `Men: $${service.men_price}<br>` : ''}
+          ${service.children_price ? `Children: $${service.children_price}<br>` : ''}
+          </p>
+          ` : `<p><strong>Price:</strong> $${service.base_price}+</p>`;
+        
+        document.getElementById('serviceModalBody').innerHTML = `
+          ${service.description ? `<p>${service.description}</p>` : ''}
+          ${priceInfo}
+          <p><strong>Duration:</strong> ${service.duration} minutes</p>
+          <p><strong>Category:</strong> ${service.category_display}</p>
+          <p><strong>Gender:</strong> ${service.gender_display}</p>
+          ${service.is_featured ? '<span class="badge bg-warning text-dark">Featured Service</span>' : ''}
+        `;
+        
+        // Update booking link
+        const bookBtn = document.querySelector('#serviceModal .btn-primary');
+        bookBtn.href = `#booking?service=${service.id}`;
+        
+        // Show modal
+        new bootstrap.Modal(document.getElementById('serviceModal')).show();
+      })
+      .catch(error => {
+        console.error('Error loading service details:', error);
+        alert('Error loading service details');
+      });
+  }
+});
 </script>
 {% endblock %}
