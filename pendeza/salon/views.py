@@ -132,7 +132,6 @@ class SalonUpdateView(LoginRequiredMixin, View):
 # ===============================================
 # SALON GALLERY
 # ===============================================
-
 # ========== SALON GALLERY UPLOAD VIEW ==========
 class SalonGalleryUploadView(LoginRequiredMixin, View):
     def post(self, request, slug):
@@ -210,11 +209,56 @@ class SalonGalleryStatusUpdateView(LoginRequiredMixin, View):
         
         return JsonResponse({'success': True, 'message': 'Image status updated successfully'})
     
+# ===============================================
+# SALON TEAM LIST VIEW
+# ===============================================
+from django.views.generic import ListView, DetailView
+from .models import StaffOnDuty
+
+class TeamListView(ListView):
+    model = StaffOnDuty
+    template_name = 'salon/team_list.html'
+    context_object_name = 'staff_members'
+    
+    def get_queryset(self):
+        return StaffOnDuty.objects.filter(
+            salon__slug=self.kwargs['slug'],
+            status='Active'
+        ).order_by('display_order')
+
+class TeamDetailView(DetailView):
+    model = StaffOnDuty
+    template_name = 'salon/team_detail.html'
+    context_object_name = 'staff_member'
+    
+    def get_object(self, queryset=None):
+        return get_object_or_404(
+            StaffOnDuty,
+            salon__slug=self.kwargs['slug'],
+            id=self.kwargs['staff_id'],
+            status='Active'
+        )
+# ========== SALON TEAM MEMBER UPDATE VIEW ==========
+class TeamMemberUpdateView(LoginRequiredMixin, UpdateView):
+    model = StaffOnDuty
+    template_name = 'salon/team_member_form.html'
+    fields = ['name', 'position', 'bio', 'image', 'status']
+    
+    def get_object(self, queryset=None):
+        return get_object_or_404(
+            StaffOnDuty,
+            salon__slug=self.kwargs['slug'],
+            id=self.kwargs['staff_id']
+        )
+    
+    def form_valid(self, form):
+        form.instance.salon = get_object_or_404(Salon, slug=self.kwargs['slug'])
+        return super().form_valid(form)
+    
 
 # ===============================================
 # SALON FEATURES
 # ===============================================
-
 # ========== SALON FEATURES VIEW ==========
 class SalonFeaturesView(LoginRequiredMixin, View):
     def post(self, request, slug):
@@ -497,11 +541,28 @@ class SalonServiceAPIView(LoginRequiredMixin, View):
         }, status=204)
 
 
+
+# ============================================
+# SALON REVIEWS
+# ============================================
+# ========== SALON REVIEWS VIEW ==========
+# add_review
+def add_review(request, pk):
+    data = json.loads(request.body)
+    review = SalonReview(
+        salon_id=pk,
+        user=request.user,
+        rating=data.get('rating'),
+        comment=data.get('comment')
+    )
+    review.save()
+    return JsonResponse(review.to_dict(), status=201)
+
+
+
 # ============================================
 # BOOKING AND PAYMENT STATUS VIEWS
 # ============================================
-
-
 # ========== BOOKING LIST VIEW ==========
 class BookingListView(LoginRequiredMixin, ListView):
     model = Booking
@@ -686,6 +747,9 @@ class BookingCalendarView(LoginRequiredMixin, View):
         
         return JsonResponse(events, safe=False)
 
+
+        
+
 # ========== STAFF AVAILABILITY CHECK ==========
 class StaffAvailabilityView(LoginRequiredMixin, View):
     def get(self, request):
@@ -738,19 +802,3 @@ class StaffAvailabilityView(LoginRequiredMixin, View):
                    available_slots.append(slot)
        return available_slots
     
-
-# ============================================
-# SALON REVIEWS
-# ============================================
-# ========== SALON REVIEWS VIEW ==========
-# add_review
-def add_review(request, pk):
-    data = json.loads(request.body)
-    review = SalonReview(
-        salon_id=pk,
-        user=request.user,
-        rating=data.get('rating'),
-        comment=data.get('comment')
-    )
-    review.save()
-    return JsonResponse(review.to_dict(), status=201)
