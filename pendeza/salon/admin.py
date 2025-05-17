@@ -171,21 +171,6 @@ class ServiceGenderAdmin(admin.ModelAdmin):
 
 
 # ======================
-# SERVICE CATEGORY ADMIN
-# ======================
-class ServiceCategoryAdmin(admin.ModelAdmin):
-    model = ServiceCategory
-    list_filter = ['name']
-    search_fields = ['name']
-    list_per_page = 25
-    readonly_fields = ['created_at']
-
-    def created_at(self, obj):
-        return obj.date.strftime("%Y-%m-%d") if obj.date else "-"
-    created_at.short_description = 'Created'
-
-
-# ======================
 # BOOKING STATUS ADMIN
 # ======================
 class BookingStatusAdmin(admin.ModelAdmin):

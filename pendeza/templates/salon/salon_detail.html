@@ -754,35 +754,148 @@ Pendeza Salon{% endblock %} {% block content %}
     </div>
 
     <div class="row">
-      {% for member in "1234" %}
-      <div class="col-md-6 col-lg-3">
-        <div class="team-card">
-          <img
-            src="https://randomuser.me/api/portraits/women/{{ forloop.counter|add:30 }}.jpg"
-            class="team-img"
-            alt="Team Member"
-          />
+      {% for member in staff_members %}
+      <div class="col-md-6 col-lg-3 mb-4">
+        <div class="team-card h-100">
+          {% if member.profile_pic %}
+            <img src="{{ member.profile_pic.url }}" class="team-img" alt="{% firstof member.user.get_full_name member.get_role_display %}" />
+          {% else %}
+            <div class="team-img-placeholder d-flex align-items-center justify-content-center bg-light">
+              <i class="fas fa-user fa-3x text-muted"></i>
+            </div>
+          {% endif %}
           <div class="team-info">
-            <h5>Stylist Name</h5>
-            <p class="text-muted mb-2">Hair Specialist</p>
+            <h5>{% firstof member.user.get_full_name member.get_role_display %}</h5>
+            <p class="text-muted mb-2">{{ member.get_role_display }}</p>
+            
+            {% if member.specialization.exists %}
+            <div class="specializations mb-2">
+              <small class="text-primary">
+                {% for service in member.specialization.all %}
+                  {{ service.name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+              </small>
+            </div>
+            {% endif %}
+            
             <div class="team-social">
-              <a href="#"><i class="fab fa-instagram"></i></a>
-              <a href="#"><i class="fab fa-facebook-f"></i></a>
-              <a href="#"><i class="fab fa-twitter"></i></a>
+              {% if member.user.socialaccount_set.all %}
+                {% for account in member.user.socialaccount_set.all %}
+                  <a href="{{ account.get_profile_url }}" target="_blank" rel="noopener noreferrer">
+                    <i class="fab fa-{{ account.provider }}"></i>
+                  </a>
+                {% endfor %}
+              {% else %}
+                {% if member.user.social_links.instagram %}
+                  <a href="{{ member.user.social_links.instagram }}" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
+                {% endif %}
+                {% if member.user.social_links.facebook %}
+                  <a href="{{ member.user.social_links.facebook }}" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook-f"></i></a>
+                {% endif %}
+                {% if member.user.social_links.twitter %}
+                  <a href="{{ member.user.social_links.twitter }}" target="_blank" rel="noopener noreferrer"><i class="fab fa-twitter"></i></a>
+                {% endif %}
+              {% endif %}
+            </div>
+            
+            <div class="availability-badge mt-2">
+              <span class="badge {% if member.current_status == 'On duty' %}bg-success{% elif member.current_status == 'On break' %}bg-warning{% else %}bg-secondary{% endif %}">
+                {{ member.current_status }}
+              </span>
             </div>
           </div>
         </div>
       </div>
+      {% empty %}
+      <div class="col-12 text-center">
+        <div class="alert alert-info">No team members available at this time.</div>
+      </div>
       {% endfor %}
     </div>
 
+    {% if staff_members.count > 4 %}
     <div class="text-center mt-4">
-      <a href="#" class="btn btn-primary">
+      <a href="{% url 'salon:team_list' salon.slug %}" class="btn btn-primary">
         <i class="fas fa-users me-2"></i> View Full Team
       </a>
     </div>
+    {% endif %}
   </div>
 </section>
+
+<style>
+  .team-card {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+    background: white;
+  }
+  
+  .team-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  }
+  
+  .team-img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .team-img-placeholder {
+    width: 100%;
+    height: 250px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  }
+  
+  .team-info {
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .team-social {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  
+  .team-social a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    color: #495057;
+    transition: all 0.3s;
+    text-decoration: none;
+  }
+  
+  .team-social a:hover {
+    background: var(--bs-primary);
+    color: white;
+    transform: scale(1.1);
+  }
+  
+  .specializations {
+    min-height: 40px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+  }
+  
+  .availability-badge .badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    font-weight: 500;
+  }
+</style>
+
 
 <!-- Reviews Section -->
 <section class="reviews-section" id="reviews">

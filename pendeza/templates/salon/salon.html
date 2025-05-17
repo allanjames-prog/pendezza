@@ -216,6 +216,57 @@
       opacity: 0;
     }
   }
+
+  /* Updated Testimonial Styles */
+  .testimonial-card {
+    transition: transform 0.3s ease;
+    border-radius: 12px;
+    background: white;
+  }
+
+  .testimonial-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  .quote-icon {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    opacity: 0.5;
+    z-index: 0;
+  }
+
+  .user-photo img {
+    border: 3px solid var(--primary-color);
+    object-fit: cover;
+    z-index: 1;
+    position: relative;
+  }
+
+  .rating-stars {
+    color: #ffc107;
+    font-size: 18px;
+    letter-spacing: 2px;
+  }
+
+  .rating-value {
+    color: #6c757d;
+    font-weight: bold;
+  }
+
+  .testimonial-card .card-text {
+    font-style: italic;
+    position: relative;
+    z-index: 1;
+    line-height: 1.6;
+  }
+
+  .user-info {
+    position: relative;
+    z-index: 1;
+  }
+
 </style>
 
 <!-- Hero Section -->
@@ -575,57 +626,7 @@
   </div>
 </section>
 
-<style>
-  /* Updated Testimonial Styles */
-  .testimonial-card {
-    transition: transform 0.3s ease;
-    border-radius: 12px;
-    background: white;
-  }
 
-  .testimonial-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  }
-
-  .quote-icon {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    opacity: 0.5;
-    z-index: 0;
-  }
-
-  .user-photo img {
-    border: 3px solid var(--primary-color);
-    object-fit: cover;
-    z-index: 1;
-    position: relative;
-  }
-
-  .rating-stars {
-    color: #ffc107;
-    font-size: 18px;
-    letter-spacing: 2px;
-  }
-
-  .rating-value {
-    color: #6c757d;
-    font-weight: bold;
-  }
-
-  .testimonial-card .card-text {
-    font-style: italic;
-    position: relative;
-    z-index: 1;
-    line-height: 1.6;
-  }
-
-  .user-info {
-    position: relative;
-    z-index: 1;
-  }
-</style>
 <!-- Special Offers -->
 <section class="py-5 bg-dark text-white">
   <div class="container text-center">

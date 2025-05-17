@@ -6,30 +6,17 @@ from django.views.decorators.cache import cache_page
 from django.views.generic import View, ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.http import JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
-
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-
 from django.core.exceptions import PermissionDenied
 from userauthentication.models import User
 from datetime import datetime, timedelta
 from django.urls import reverse
-
-from django.views.generic import View
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import get_object_or_404
-from django.http import JsonResponse
 from django.forms.models import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from .models import Salon, SalonServices
 from .forms import SalonServiceForm
 import json
 
-
-# Import json for JSON responses
-import json
 
 
 
@@ -43,6 +30,7 @@ def index(request):
     
     return render(request, "salon/salon.html", {"page_obj": page_obj})
 
+
 # ========= SALON DETAIL VIEW ==========
 @cache_page(60 * 15)  # Cache for 15 minutes
 def salon_detail(request, slug):
@@ -51,8 +39,12 @@ def salon_detail(request, slug):
         salon = Salon.objects.select_related('user').prefetch_related(
             'gallery_images',
             'features',
-            'faqs'
+            'faqs',
+            'staff_members'  # Add this to prefetch staff members
         ).get(slug=slug, status=SalonStatus.LIVE)
+        
+        # Get active staff members ordered by display order (first 4 for the homepage)
+        staff_members = salon.staff_members.filter(status='Active').order_by('display_order')[:4]
         
         # Increment view count
         salon.views += 1
@@ -64,6 +56,7 @@ def salon_detail(request, slug):
             'gallery_images': salon.gallery_images.all(),
             'features': salon.features.filter(is_active=True),
             'faqs': salon.faqs.filter(is_active=True),
+            'staff_members': staff_members,  # Add staff members to context
             'is_owner': request.user == salon.user,  # Check if current user owns the salon
         }
         
@@ -71,7 +64,7 @@ def salon_detail(request, slug):
         
     except Salon.DoesNotExist:
         raise Http404("Salon not found or not published yet")
-    
+
 # ========== SALON DELETE VIEW ==========
 class SalonDeleteView(LoginRequiredMixin, View):
     def post(self, request, pk):
@@ -254,7 +247,73 @@ class TeamMemberUpdateView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         form.instance.salon = get_object_or_404(Salon, slug=self.kwargs['slug'])
         return super().form_valid(form)
+
+
+# ========== STAFF AVAILABILITY CHECK ==========
+class StaffAvailabilityView(LoginRequiredMixin, View):
+    def get(self, request):
+        staff_id = request.GET.get('staff_id')
+        date = request.GET.get('date')
+        service_id = request.GET.get('service_id')
+        
+        if not all([staff_id, date, service_id]):
+            return JsonResponse({'error': 'Missing parameters'}, status=400)
+        
+        try:
+            staff = User.objects.get(pk=staff_id)
+            service = SalonServices.objects.get(pk=service_id)
+            booking_date = datetime.strptime(date, '%Y-%m-%d').date()
+        except (User.DoesNotExist, SalonServices.DoesNotExist, ValueError):
+            return JsonResponse({'error': 'Invalid parameters'}, status=400)
+        
+        # Get existing bookings for this staff member on this date
+        bookings = Booking.objects.filter(
+            staff_member=staff,
+            booking_date=booking_date
+        ).exclude(status=BookingStatus.CANCELLED)
+        
+        # Get staff working hours (you'll need to implement this based on your StaffOnDuty model)
+        working_hours = self.get_staff_working_hours(staff, booking_date)
+        
+        # Calculate available slots
+        available_slots = self.calculate_available_slots(working_hours, bookings, service.duration)
+        
+        return JsonResponse({'available_slots': available_slots})
+
+    def get_staff_working_hours(self, staff, date):
+        try:
+            staff_on_duty = StaffOnDuty.objects.get(staff_member=staff, date=date)
+            return {
+                'start': staff_on_duty.start_time,
+                'end': staff_on_duty.end_time,
+                'break_start': staff_on_duty.break_start_time,
+                'break_end': staff_on_duty.break_end_time
+            }
+        except StaffOnDuty.DoesNotExist:
+            return None
+
+    def calculate_available_slots(self, working_hours, existing_bookings, service_duration):
+       available_slots = []
+       for hour in range(working_hours['start'], working_hours['end']):
+           for minute in [0, 30]:
+               slot = f"{hour:02}:{minute:02}"
+               if slot not in [booking.start_time for booking in existing_bookings]:
+                   available_slots.append(slot)
+       return available_slots
     
+# ========== SALON TEAM MEMBER DELETE VIEW ==========
+class TeamMemberDeleteView(LoginRequiredMixin, View):
+    def post(self, request, slug, staff_id):
+        salon = get_object_or_404(Salon, slug=slug)
+        
+        # Check if the current user owns the salon
+        if request.user != salon.user:
+            return JsonResponse({'error': 'You do not have permission to delete this team member'}, status=403)
+        
+        staff_member = get_object_or_404(StaffOnDuty, id=staff_id, salon=salon)
+        staff_member.delete()
+        
+        return JsonResponse({'success': True, 'message': 'Team member deleted successfully'})
 
 # ===============================================
 # SALON FEATURES
@@ -749,56 +808,3 @@ class BookingCalendarView(LoginRequiredMixin, View):
 
 
         
-
-# ========== STAFF AVAILABILITY CHECK ==========
-class StaffAvailabilityView(LoginRequiredMixin, View):
-    def get(self, request):
-        staff_id = request.GET.get('staff_id')
-        date = request.GET.get('date')
-        service_id = request.GET.get('service_id')
-        
-        if not all([staff_id, date, service_id]):
-            return JsonResponse({'error': 'Missing parameters'}, status=400)
-        
-        try:
-            staff = User.objects.get(pk=staff_id)
-            service = SalonServices.objects.get(pk=service_id)
-            booking_date = datetime.strptime(date, '%Y-%m-%d').date()
-        except (User.DoesNotExist, SalonServices.DoesNotExist, ValueError):
-            return JsonResponse({'error': 'Invalid parameters'}, status=400)
-        
-        # Get existing bookings for this staff member on this date
-        bookings = Booking.objects.filter(
-            staff_member=staff,
-            booking_date=booking_date
-        ).exclude(status=BookingStatus.CANCELLED)
-        
-        # Get staff working hours (you'll need to implement this based on your StaffOnDuty model)
-        working_hours = self.get_staff_working_hours(staff, booking_date)
-        
-        # Calculate available slots
-        available_slots = self.calculate_available_slots(working_hours, bookings, service.duration)
-        
-        return JsonResponse({'available_slots': available_slots})
-
-    def get_staff_working_hours(self, staff, date):
-        try:
-            staff_on_duty = StaffOnDuty.objects.get(staff_member=staff, date=date)
-            return {
-                'start': staff_on_duty.start_time,
-                'end': staff_on_duty.end_time,
-                'break_start': staff_on_duty.break_start_time,
-                'break_end': staff_on_duty.break_end_time
-            }
-        except StaffOnDuty.DoesNotExist:
-            return None
-
-    def calculate_available_slots(self, working_hours, existing_bookings, service_duration):
-       available_slots = []
-       for hour in range(working_hours['start'], working_hours['end']):
-           for minute in [0, 30]:
-               slot = f"{hour:02}:{minute:02}"
-               if slot not in [booking.start_time for booking in existing_bookings]:
-                   available_slots.append(slot)
-       return available_slots
-    

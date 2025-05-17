@@ -7,6 +7,7 @@ from django.core.validators import RegexValidator
 from django.utils import timezone
 from datetime import timedelta, date, time, datetime
 from taggit.managers import TaggableManager
+from django.core.exceptions import ValidationError
 
 
 # ============================================
@@ -37,7 +38,9 @@ def salon_image_upload_path(instance, filename):
     filename = f"{uuid.uuid4()}.{ext}"
     return os.path.join('salon_gallery', slugify(instance.name), filename)
 
-# Salon model
+# ============================================
+# SALON 
+# ============================================
 class Salon(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='salons')
     name = models.CharField(max_length=100, unique=True)
@@ -95,7 +98,8 @@ class Salon(models.Model):
         if self.image and hasattr(self.image, 'url'):
             return self.image.url
         return None
-    
+
+# Salon Working Hours
 class SalonWorkingHours(models.Model):
     salon = models.OneToOneField(Salon, on_delete=models.CASCADE, related_name='working_hours')
     monday_friday = models.CharField(
@@ -110,7 +114,8 @@ class SalonWorkingHours(models.Model):
 
     def __str__(self):
         return f"Working hours for {self.salon.name}"
-
+    
+# Salon Parking
 class SalonParking(models.Model):
     salon = models.OneToOneField(Salon, on_delete=models.CASCADE, related_name='parking')
     has_parking = models.BooleanField(default=True)
@@ -121,6 +126,7 @@ class SalonParking(models.Model):
     def __str__(self):
         return f"Parking info for {self.salon.name}"
 
+# Salon Amenity
 class SalonAmenity(models.Model):
     salon = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='amenities')
     name = models.CharField(max_length=100)
@@ -134,7 +140,8 @@ class SalonAmenity(models.Model):
 
     def __str__(self):
         return f"{self.name} at {self.salon.name}"
-
+    
+# Salon PaymentOption
 class SalonPaymentOption(models.Model):
     salon = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='payment_options')
     method = models.CharField(max_length=100)
@@ -155,6 +162,7 @@ def gallery_image_upload_path(instance, filename):
         return os.path.join('salon_gallery', instance.salon.slug, filename)
     return os.path.join('salon_gallery', 'no_salon', filename)
 
+# Salon Gallery
 class SalonGallery(models.Model):
     salon = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='gallery_images')
     image = models.ImageField(upload_to=gallery_image_upload_path)
@@ -166,6 +174,7 @@ class SalonGallery(models.Model):
         verbose_name_plural = "Salon Gallery"  
         ordering = ['-id']  
 
+# Salon Features
 class SalonFeatures(models.Model):
     salon = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='features')
     icon_type = models.CharField(max_length=100, null=True, blank=True, choices=ICON_TYPE)
@@ -191,6 +200,7 @@ class SalonFeatures(models.Model):
         ordering = ['name']
         unique_together = ('salon', 'name')
 
+# Salon FAQs
 class SalonFaq(models.Model):  # Fixed spacing
     salon = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='faqs')
     question = models.CharField(max_length=1000)
@@ -326,6 +336,22 @@ class StaffOnDuty(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # Weekday fields (add any missing ones)
+    monday_start = models.TimeField(default=time(9, 0))
+    monday_end = models.TimeField(default=time(17, 0))
+    tuesday_start = models.TimeField(default=time(9, 0))
+    tuesday_end = models.TimeField(default=time(17, 0))
+    wednesday_start = models.TimeField(default=time(9, 0))
+    wednesday_end = models.TimeField(default=time(17, 0))
+    thursday_start = models.TimeField(default=time(9, 0))
+    thursday_end = models.TimeField(default=time(17, 0))
+    friday_start = models.TimeField(default=time(9, 0))
+    friday_end = models.TimeField(default=time(17, 0))
+    saturday_start = models.TimeField(null=True, blank=True)  # Many salons are closed Saturdays
+    saturday_end = models.TimeField(null=True, blank=True)
+    sunday_start = models.TimeField(null=True, blank=True)  # Typically closed Sundays
+    sunday_end = models.TimeField(null=True, blank=True)
+
     class Meta:
         verbose_name = "Staff Member"
         verbose_name_plural = "Staff On Duty"
@@ -345,13 +371,20 @@ class StaffOnDuty(models.Model):
         start_field = f"{current_day}_start"
         end_field = f"{current_day}_end"
         
-        if not getattr(self, start_field) or not getattr(self, end_field):
+        # Skip if the day fields don't exist or are None
+        if not hasattr(self, start_field) or not hasattr(self, end_field):
+            return "Not scheduled"
+            
+        start_time = getattr(self, start_field)
+        end_time = getattr(self, end_field)
+        
+        if start_time is None or end_time is None:
             return "Not scheduled today"
             
-        if getattr(self, start_field) <= current_time <= getattr(self, end_field):
+        if start_time <= current_time <= end_time:
             if self.break_start and self.break_duration:
                 break_end = (datetime.combine(date.today(), self.break_start) + 
-                           timedelta(minutes=self.break_duration)).time()
+                        timedelta(minutes=self.break_duration)).time()
                 if self.break_start <= current_time <= break_end:
                     return "On break"
             return "On duty"
@@ -386,6 +419,14 @@ class StaffOnDuty(models.Model):
             return self.profile_pic.url
         return None
     
+    def clean(self):
+        if not self.user.get_full_name().strip():
+            raise ValidationError("Associated user must have a first or last name set")
+    
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
 # ============================================
 # SALON REVIEWS
 # ============================================

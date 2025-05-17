@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import index, salon_detail
 from salon import views
-from salon.views import SalonGalleryUploadView, SalonServiceAPIView
+from salon.views import SalonGalleryUploadView, SalonServiceAPIView, TeamListView, TeamDetailView, TeamMemberUpdateView, TeamMemberDeleteView
 
 app_name = "salon"
 
@@ -28,6 +28,11 @@ urlpatterns = [
   path('salon/<slug:slug>/services/<int:service_id>/', SalonServiceAPIView.as_view(), name='salon-service-detail'),
   path('salon/<slug:slug>/services/<int:service_id>/delete/', SalonServiceAPIView.as_view(), name='salon-service-delete'),
   path('salon/<slug:slug>/services/<int:service_id>/update/', SalonServiceAPIView.as_view(), name='salon-service-update'),
+
+  path('<slug:slug>/team/', TeamListView.as_view(), name='team_list'),
+  path('<slug:slug>/team/<uuid:staff_id>/', TeamDetailView.as_view(), name='team_detail'),
+  path('<slug:slug>/team/<uuid:staff_id>/update/', TeamMemberUpdateView.as_view(), name='team_member_update'),
+  path('<slug:slug>/team/<uuid:staff_id>/delete/', TeamMemberDeleteView.as_view(), name='team_member_delete'),
 
 ]
 
