@@ -1,9 +1,6 @@
 *.pyc
-__pycache__/
 /static/
 /media/
-/venv/
-/myvenv/
 .env
 
 /venv/
