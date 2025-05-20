@@ -1039,9 +1039,9 @@ Pendeza Salon{% endblock %} {% block content %}
           <i class="fas fa-star me-2"></i> Leave a Review
         </a>
       {% endif %}
-      <a href="#" class="btn btn-primary">
-        <i class="fas fa-list me-2"></i> See All Reviews
-      </a>
+        <a href="{% url 'salon:all_reviews' salon.slug %}" class="btn btn-primary">
+          <i class="fas fa-list me-2"></i> See All Reviews
+        </a>
     </div>
   </div>
 </section>

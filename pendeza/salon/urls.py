@@ -38,6 +38,8 @@ urlpatterns = [
   path('<slug:slug>/', views.salon_detail, name='salon_detail'),
   path('<slug:slug>/add-review/', views.add_review, name='add_review'),
 
+  path('<slug:slug>/reviews/', views.SalonReviewsView.as_view(), name='all_reviews'),
+
 
 
 ]

@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+.review-card {
+    transition: transform 0.3s ease;
+}
+.review-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+.star-rating label {
+    cursor: pointer;
+    font-size: 1.5rem;
+}
+</style>
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>All Reviews for {{ salon.name }}</h2>
+                <a href="{% url 'salon:detail' salon.slug %}" class="btn btn-outline-primary">
+                    Back to Salon
+                </a>
+            </div>
+
+            {% if reviews %}
+                {% for review in reviews %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <img src="{% if review.user.profile.avatar %}{{ review.user.profile.avatar.url }}{% else %}https://randomuser.me/api/portraits/{% if review.user.gender == 'F' %}women{% else %}men{% endif %}/{{ review.user.id|slice:":2" }}.jpg{% endif %}" 
+                                 class="rounded-circle me-3" width="50" height="50" alt="{{ review.user.get_full_name }}">
+                            <div>
+                                <h5 class="mb-0">{{ review.user.get_full_name }}</h5>
+                                <div class="text-warning">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= review.rating %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <small class="text-muted">{{ review.created_at|date:"F j, Y" }}</small>
+                            </div>
+                        </div>
+                        <p class="mb-0">{{ review.comment }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <nav aria-label="Reviews pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-info">No reviews yet.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

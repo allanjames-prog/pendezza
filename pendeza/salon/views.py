@@ -604,8 +604,6 @@ class SalonServiceAPIView(View):
 # ============================================
 # SALON REVIEWS
 # ============================================
-# ========== SALON REVIEWS VIEW ==========
-# add_review
 
 @login_required
 def add_review(request, slug):
@@ -641,6 +639,24 @@ def salon_detail(request, slug):
         'review_summary': review_summary.get_review_summary() if review_summary else None
     }
     return render(request, 'salon/salon_detail.html', context)
+
+from django.views.generic import ListView
+
+class SalonReviewsView(ListView):
+    model = SalonReview
+    template_name = 'salon/all_reviews.html'
+    context_object_name = 'reviews'
+    paginate_by = 10  # Show 10 reviews per page
+
+    def get_queryset(self):
+        salon_slug = self.kwargs.get('slug')
+        return SalonReview.objects.filter(salon__slug=salon_slug).order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['salon'] = get_object_or_404(Salon, slug=self.kwargs.get('slug'))
+        return context
+
 
 
 
