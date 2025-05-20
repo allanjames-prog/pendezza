@@ -33,6 +33,12 @@ urlpatterns = [
   path('<slug:slug>/team/<uuid:staff_id>/', TeamDetailView.as_view(), name='team_detail'),
   path('<slug:slug>/team/<uuid:staff_id>/update/', TeamMemberUpdateView.as_view(), name='team_member_update'),
   path('<slug:slug>/team/<uuid:staff_id>/delete/', TeamMemberDeleteView.as_view(), name='team_member_delete'),
+  path('salon/<uuid:pk>/add-review/', views.add_review, name='add_review'),
+  
+  path('<slug:slug>/', views.salon_detail, name='salon_detail'),
+  path('<slug:slug>/add-review/', views.add_review, name='add_review'),
+
+
 
 ]
 

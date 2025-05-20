@@ -1,21 +1,21 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from salon.models import salon_image_upload_path, Salon, SalonGallery, SalonFeatures, SalonFaq, SalonServices, ServiceCategory, SalonStatus, BookingStatus, Booking, ServiceGender, PaymentStatus, StaffOnDuty, SalonReview
 from django.core.paginator import Paginator
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.views.decorators.cache import cache_page
 from django.views.generic import View, ListView, CreateView, UpdateView, DeleteView, DetailView
-from django.http import JsonResponse
+
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.core.exceptions import PermissionDenied
 from userauthentication.models import User
 from datetime import datetime, timedelta
-from django.urls import reverse
 from django.forms.models import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from .forms import SalonServiceForm
 import json
+from django.contrib.auth.decorators import login_required
 
 
 
@@ -438,7 +438,7 @@ class SalonFaqDeleteView(LoginRequiredMixin, View):
 # SALON SERVICES API VIEW
 # ===============================================
 @method_decorator(csrf_exempt, name='dispatch')
-class SalonServiceAPIView(LoginRequiredMixin, View):
+class SalonServiceAPIView(View):
     """Handles all service CRUD operations in one view"""
     
     def get(self, request, slug, service_id=None):
@@ -606,16 +606,41 @@ class SalonServiceAPIView(LoginRequiredMixin, View):
 # ============================================
 # ========== SALON REVIEWS VIEW ==========
 # add_review
-def add_review(request, pk):
-    data = json.loads(request.body)
-    review = SalonReview(
-        salon_id=pk,
-        user=request.user,
-        rating=data.get('rating'),
-        comment=data.get('comment')
-    )
-    review.save()
-    return JsonResponse(review.to_dict(), status=201)
+
+@login_required
+def add_review(request, slug):
+    if request.method == 'POST':
+        try:
+            data = request.POST
+            salon = get_object_or_404(Salon, slug=slug)
+            user = request.user
+            rating = int(data.get('rating'))
+            comment = data.get('comment')
+
+            review = SalonReview.objects.create(
+                salon=salon,
+                user=user,
+                rating=rating,
+                comment=comment
+            )
+
+            return redirect('salon:salon_detail', slug=salon.slug)
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+    return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=405)
+
+# SALON REVIEW DETAIL VIEW
+def salon_detail(request, slug):
+    salon = get_object_or_404(Salon, slug=slug)
+    reviews = salon.reviews.select_related('user').all()
+    review_summary = SalonReview.objects.filter(salon=salon).first()
+    context = {
+        'salon': salon,
+        'reviews': reviews,
+        'review_summary': review_summary.get_review_summary() if review_summary else None
+    }
+    return render(request, 'salon/salon_detail.html', context)
 
 
 

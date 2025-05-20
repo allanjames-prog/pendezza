@@ -1,453 +1,579 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}Pendeza Salon{% endblock %}</title>
-    
+
     <!-- Favicon -->
-    <link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+    <link
+      rel="icon"
+      href="{% static 'images/favicon.ico' %}"
+      type="image/x-icon"
+    />
 
     <!-- SweetAlert2 CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7"
+      crossorigin="anonymous"
+    />
 
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
 
     <!-- AOS Animation -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+
+    <!-- Swiper CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/swiper/swiper-bundle.min.css"
+    />
+
+    <!-- Swiper JS (put before closing </body>) -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 
     <!-- Custom CSS -->
     <style>
-        :root {
-            --primary-color: #c8a2c8; /* Lilac */
-            --primary-dark: #9c7b9c;
-            --secondary-color: #f8f9fa;
-            --accent-color: #d4af37; /* Gold */
-            --dark-color: #343a40;
-            --light-color: #ffffff;
-            --text-color: #495057;
-        }
+      :root {
+        --primary-color: #c8a2c8; /* Lilac */
+        --primary-dark: #9c7b9c;
+        --secondary-color: #f8f9fa;
+        --accent-color: #d4af37; /* Gold */
+        --dark-color: #343a40;
+        --light-color: #ffffff;
+        --text-color: #495057;
+      }
 
-        body {
-            font-family: "Montserrat", sans-serif;
-            background-color: var(--secondary-color);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
+      body {
+        font-family: "Montserrat", sans-serif;
+        background-color: var(--secondary-color);
+        color: var(--text-color);
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
 
-        h1, h2, h3, h4, h5, h6 {
-            font-family: "Playfair Display", serif;
-            font-weight: 700;
-        }
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        font-family: "Playfair Display", serif;
+        font-weight: 700;
+      }
 
-        /* Preloader */
-        #preloader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--light-color);
-            z-index: 9999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: opacity 0.5s ease;
-        }
+      /* Preloader */
+      #preloader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--light-color);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 0.5s ease;
+      }
 
-        .loader {
-            width: 48px;
-            height: 48px;
-            border: 5px solid var(--primary-color);
-            border-bottom-color: transparent;
-            border-radius: 50%;
-            display: inline-block;
-            box-sizing: border-box;
-            animation: rotation 1s linear infinite;
-        }
+      .loader {
+        width: 48px;
+        height: 48px;
+        border: 5px solid var(--primary-color);
+        border-bottom-color: transparent;
+        border-radius: 50%;
+        display: inline-block;
+        box-sizing: border-box;
+        animation: rotation 1s linear infinite;
+      }
 
-        @keyframes rotation {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+      @keyframes rotation {
+        0% {
+          transform: rotate(0deg);
         }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
 
-        /* Enhanced Navbar */
-        .navbar {
-            transition: all 0.4s ease;
-            padding: 20px 0;
-            background-color: rgba(255, 255, 255, 0.98) !important;
-            backdrop-filter: blur(10px);
-        }
+      /* Enhanced Navbar */
+      .navbar {
+        transition: all 0.4s ease;
+        padding: 20px 0;
+        background-color: rgba(255, 255, 255, 0.98) !important;
+        backdrop-filter: blur(10px);
+      }
 
-        .navbar.scrolled {
-            padding: 10px 0;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-        }
+      .navbar.scrolled {
+        padding: 10px 0;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      }
 
-        .navbar-brand {
-            font-weight: 700;
-            font-size: 1.8rem;
-            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            transition: all 0.3s ease;
-        }
+      .navbar-brand {
+        font-weight: 700;
+        font-size: 1.8rem;
+        background: linear-gradient(
+          45deg,
+          var(--primary-color),
+          var(--accent-color)
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        transition: all 0.3s ease;
+      }
 
-        .navbar-brand:hover {
-            transform: scale(1.02);
-        }
+      .navbar-brand:hover {
+        transform: scale(1.02);
+      }
 
-        .nav-link {
-            position: relative;
-            font-weight: 500;
-            margin: 0 15px;
-            color: var(--dark-color) !important;
-            transition: all 0.3s ease;
-        }
+      .nav-link {
+        position: relative;
+        font-weight: 500;
+        margin: 0 15px;
+        color: var(--dark-color) !important;
+        transition: all 0.3s ease;
+      }
 
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: 0;
-            left: 0;
-            background-color: var(--primary-color);
-            transition: width 0.3s ease;
-        }
+      .nav-link::after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: 0;
+        left: 0;
+        background-color: var(--primary-color);
+        transition: width 0.3s ease;
+      }
 
-        .nav-link:hover::after,
-        .nav-link.active::after {
-            width: 100%;
-        }
+      .nav-link:hover::after,
+      .nav-link.active::after {
+        width: 100%;
+      }
 
-        /* Enhanced Buttons */
-        .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            z-index: 1;
-        }
+      /* Enhanced Buttons */
+      .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+      }
 
-        .btn-primary:hover {
-            background-color: var(--primary-dark);
-            border-color: var(--primary-dark);
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(200, 162, 200, 0.3);
-        }
+      .btn-primary:hover {
+        background-color: var(--primary-dark);
+        border-color: var(--primary-dark);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(200, 162, 200, 0.3);
+      }
 
-        .btn-primary::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, var(--primary-dark), var(--accent-color));
-            z-index: -1;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
+      .btn-primary::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          45deg,
+          var(--primary-dark),
+          var(--accent-color)
+        );
+        z-index: -1;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
 
-        .btn-primary:hover::before {
-            opacity: 1;
-        }
+      .btn-primary:hover::before {
+        opacity: 1;
+      }
 
-        /* Main Content */
-        main {
-            flex: 1;
-            position: relative;
-        }
+      /* Main Content */
+      main {
+        flex: 1;
+        position: relative;
+      }
 
-        /* Footer Enhancements */
-        footer {
-            background: linear-gradient(135deg, var(--dark-color), #212529);
-            color: var(--light-color);
-            padding: 60px 0 30px;
-            position: relative;
-            overflow: hidden;
-        }
+      /* Footer Enhancements */
+      footer {
+        background: linear-gradient(135deg, var(--dark-color), #212529);
+        color: var(--light-color);
+        padding: 60px 0 30px;
+        position: relative;
+        overflow: hidden;
+      }
 
-        footer::before {
-            content: '';
-            position: absolute;
-            top: -100px;
-            right: -100px;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(200, 162, 200, 0.1) 0%, transparent 70%);
-            z-index: 0;
-        }
+      footer::before {
+        content: "";
+        position: absolute;
+        top: -100px;
+        right: -100px;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(
+          circle,
+          rgba(200, 162, 200, 0.1) 0%,
+          transparent 70%
+        );
+        z-index: 0;
+      }
 
-        footer::after {
-            content: '';
-            position: absolute;
-            bottom: -50px;
-            left: -50px;
-            width: 200px;
-            height: 200px;
-            background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
-            z-index: 0;
-        }
+      footer::after {
+        content: "";
+        position: absolute;
+        bottom: -50px;
+        left: -50px;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(
+          circle,
+          rgba(212, 175, 55, 0.1) 0%,
+          transparent 70%
+        );
+        z-index: 0;
+      }
 
-        .footer-brand h4 {
-            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+      .footer-brand h4 {
+        background: linear-gradient(
+          45deg,
+          var(--primary-color),
+          var(--accent-color)
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
 
-        .social-links a {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            transition: all 0.3s ease;
-            margin-right: 10px;
-        }
+      .social-links a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        transition: all 0.3s ease;
+        margin-right: 10px;
+      }
 
-        .social-links a:hover {
-            background: var(--primary-color);
-            transform: translateY(-5px) scale(1.1);
-            box-shadow: 0 5px 15px rgba(200, 162, 200, 0.4);
-        }
+      .social-links a:hover {
+        background: var(--primary-color);
+        transform: translateY(-5px) scale(1.1);
+        box-shadow: 0 5px 15px rgba(200, 162, 200, 0.4);
+      }
 
-        /* Back to Top Button */
-        .back-to-top {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            opacity: 0;
-            transition: all 0.3s ease;
-            z-index: 99;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
+      /* Back to Top Button */
+      .back-to-top {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        opacity: 0;
+        transition: all 0.3s ease;
+        z-index: 99;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
 
-        .back-to-top.active {
-            opacity: 1;
-        }
+      .back-to-top.active {
+        opacity: 1;
+      }
 
-        .back-to-top:hover {
-            background: var(--accent-color);
-            transform: translateY(-5px);
-        }
+      .back-to-top:hover {
+        background: var(--accent-color);
+        transform: translateY(-5px);
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <!-- Preloader -->
     <div id="preloader">
-        <span class="loader"></span>
+      <span class="loader"></span>
     </div>
 
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light sticky-top">
-        <div class="container">
-            <!-- Brand Logo with Icon -->
-            <a class="navbar-brand" href="{% url 'salon:index' %}">
-                <i class="fas fa-spa me-2"></i>
-                PENDEZA SALON
-            </a>
+      <div class="container">
+        <!-- Brand Logo with Icon -->
+        <a class="navbar-brand" href="{% url 'salon:index' %}">
+          <i class="fas fa-spa me-2"></i>
+          PENDEZA SALON
+        </a>
 
-            <!-- Mobile Toggle Button -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+        <!-- Mobile Toggle Button -->
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
 
-            <!-- Navigation Links -->
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-lg-center">
-                    <li class="nav-item mx-2">
-                        <a class="nav-link" href="{% url 'salon:index' %}">Home</a>
-                    </li>
-                    <li class="nav-item mx-2">
-                        <a class="nav-link" href="#">Services</a>
-                    </li>
-                    <li class="nav-item mx-2">
-                        <a class="nav-link" href="#">Gallery</a>
-                    </li>
-                    <li class="nav-item mx-2">
-                        <a class="nav-link" href="#">About</a>
-                    </li>
-                    <li class="nav-item mx-2">
-                        <a class="nav-link" href="#">Contact</a>
-                    </li>
+        <!-- Navigation Links -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto align-items-lg-center">
+            <li class="nav-item mx-2">
+              <a class="nav-link" href="{% url 'salon:index' %}">Home</a>
+            </li>
+            <li class="nav-item mx-2">
+              <a class="nav-link" href="#">Services</a>
+            </li>
+            <li class="nav-item mx-2">
+              <a class="nav-link" href="#">Gallery</a>
+            </li>
+            <li class="nav-item mx-2">
+              <a class="nav-link" href="#">About</a>
+            </li>
+            <li class="nav-item mx-2">
+              <a class="nav-link" href="#">Contact</a>
+            </li>
 
-                    <!-- Auth Buttons -->
-                    {% if not request.user.is_authenticated %}
-                    <li class="nav-item dropdown ms-lg-3 mt-3 mt-lg-0">
-                        <a class="btn btn-outline-primary dropdown-toggle px-4 py-2" href="#" id="authDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-user me-2"></i> Account
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="authDropdown">
-                            <li>
-                                <a class="dropdown-item" href="{% url 'userauthentication:sign_in' %}">
-                                    <i class="fas fa-sign-in-alt me-2"></i> Sign In
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="{% url 'userauthentication:sign_up' %}">
-                                    <i class="fas fa-user-plus me-2"></i> Sign Up
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    {% else %}
-                    <li class="nav-item dropdown ms-lg-3 mt-3 mt-lg-0">
-                        <a class="btn btn-outline-primary dropdown-toggle px-4 py-2" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-user-circle me-2"></i> My Account
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li>
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-user me-2"></i> Profile
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-calendar-alt me-2"></i> Appointments
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-cog me-2"></i> Settings
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider" /></li>
-                            <li>
-                                <form method="post" action="{% url 'userauthentication:logout' %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="dropdown-item text-danger">
-                                        <i class="fas fa-sign-out-alt me-2"></i> Logout
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
-                    </li>
-                    {% endif %}
-                </ul>
-            </div>
+            <!-- Auth Buttons -->
+            {% if not request.user.is_authenticated %}
+            <li class="nav-item dropdown ms-lg-3 mt-3 mt-lg-0">
+              <a
+                class="btn btn-outline-primary dropdown-toggle px-4 py-2"
+                href="#"
+                id="authDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="fas fa-user me-2"></i> Account
+              </a>
+              <ul
+                class="dropdown-menu dropdown-menu-end"
+                aria-labelledby="authDropdown"
+              >
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{% url 'userauthentication:sign_in' %}"
+                  >
+                    <i class="fas fa-sign-in-alt me-2"></i> Sign In
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{% url 'userauthentication:sign_up' %}"
+                  >
+                    <i class="fas fa-user-plus me-2"></i> Sign Up
+                  </a>
+                </li>
+              </ul>
+            </li>
+            {% else %}
+            <li class="nav-item dropdown ms-lg-3 mt-3 mt-lg-0">
+              <a
+                class="btn btn-outline-primary dropdown-toggle px-4 py-2"
+                href="#"
+                id="userDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="fas fa-user-circle me-2"></i> My Account
+              </a>
+              <ul
+                class="dropdown-menu dropdown-menu-end"
+                aria-labelledby="userDropdown"
+              >
+                <li>
+                  <a class="dropdown-item" href="#">
+                    <i class="fas fa-user me-2"></i> Profile
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="#">
+                    <i class="fas fa-calendar-alt me-2"></i> Appointments
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="#">
+                    <i class="fas fa-cog me-2"></i> Settings
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <form
+                    method="post"
+                    action="{% url 'userauthentication:logout' %}"
+                  >
+                    {% csrf_token %}
+                    <button type="submit" class="dropdown-item text-danger">
+                      <i class="fas fa-sign-out-alt me-2"></i> Logout
+                    </button>
+                  </form>
+                </li>
+              </ul>
+            </li>
+            {% endif %}
+          </ul>
         </div>
+      </div>
     </nav>
 
     <!-- Main Content -->
-    <main class="py-4">
-        {% block content %}{% endblock %}
-    </main>
+    <main class="py-4">{% block content %}{% endblock %}</main>
 
     <!-- Footer -->
     <footer>
-        <div class="container position-relative" style="z-index: 1;">
-            <div class="row g-4">
-                <!-- Salon Info Column -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="footer-brand d-flex align-items-center mb-3">
-                        <i class="fas fa-spa me-2" style="font-size: 1.8rem"></i>
-                        <h4 class="mb-0">PENDEZA SALON</h4>
-                    </div>
-                    <p class="mb-3">
-                        Your destination for luxury beauty treatments and exceptional service.
-                    </p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-pinterest"></i></a>
-                    </div>
-                </div>
-
-                <!-- Quick Links Column -->
-                <div class="col-lg-2 col-md-6">
-                    <h5 class="mb-3">Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">Home</a></li>
-                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">Services</a></li>
-                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">Gallery</a></li>
-                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">About Us</a></li>
-                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">Blog</a></li>
-                        <li><a href="#" class="text-white text-decoration-none">Contact</a></li>
-                    </ul>
-                </div>
-
-                <!-- Services Column -->
-                <div class="col-lg-2 col-md-6">
-                    <h5 class="mb-3">Services</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">Hair Styling</a></li>
-                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">Nail Care</a></li>
-                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">Skin Care</a></li>
-                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">Makeup</a></li>
-                        <li><a href="#" class="text-white text-decoration-none">Spa Treatments</a></li>
-                    </ul>
-                </div>
-
-                <!-- Contact Column -->
-                <div class="col-lg-4 col-md-6">
-                    <h5 class="mb-3">Contact Us</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-3 d-flex align-items-start">
-                            <i class="fas fa-map-marker-alt me-2 mt-1"></i>
-                            <span>123 Beauty Street, Salon City, SC 12345</span>
-                        </li>
-                        <li class="mb-3 d-flex align-items-center">
-                            <i class="fas fa-phone me-2"></i>
-                            <span>(123) 456-7890</span>
-                        </li>
-                        <li class="mb-3 d-flex align-items-center">
-                            <i class="fas fa-envelope me-2"></i>
-                            <span>info@pendezasalon.com</span>
-                        </li>
-                        <li class="d-flex align-items-center">
-                            <i class="fas fa-clock me-2"></i>
-                            <span>Mon-Sat: 9AM - 8PM<br>Sun: 10AM - 6PM</span>
-                        </li>
-                    </ul>
-                </div>
+      <div class="container position-relative" style="z-index: 1">
+        <div class="row g-4">
+          <!-- Salon Info Column -->
+          <div class="col-lg-4 col-md-6">
+            <div class="footer-brand d-flex align-items-center mb-3">
+              <i class="fas fa-spa me-2" style="font-size: 1.8rem"></i>
+              <h4 class="mb-0">PENDEZA SALON</h4>
             </div>
-
-            <hr class="my-4" style="border-color: rgba(255, 255, 255, 0.1)" />
-
-            <div class="row align-items-center">
-                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-                    <p class="mb-0">
-                        &copy; <span id="current-year">2023</span> PENDEZA SALON. All rights reserved.
-                    </p>
-                </div>
-                <div class="col-md-6 text-center text-md-end">
-                    <a href="#" class="text-white text-decoration-none me-3">Privacy Policy</a>
-                    <a href="#" class="text-white text-decoration-none me-3">Terms of Service</a>
-                    <a href="#" class="text-white text-decoration-none">Sitemap</a>
-                </div>
+            <p class="mb-3">
+              Your destination for luxury beauty treatments and exceptional
+              service.
+            </p>
+            <div class="social-links">
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+              <a href="#"><i class="fab fa-twitter"></i></a>
+              <a href="#"><i class="fab fa-pinterest"></i></a>
             </div>
+          </div>
+
+          <!-- Quick Links Column -->
+          <div class="col-lg-2 col-md-6">
+            <h5 class="mb-3">Quick Links</h5>
+            <ul class="list-unstyled">
+              <li class="mb-2">
+                <a href="#" class="text-white text-decoration-none">Home</a>
+              </li>
+              <li class="mb-2">
+                <a href="#" class="text-white text-decoration-none">Services</a>
+              </li>
+              <li class="mb-2">
+                <a href="#" class="text-white text-decoration-none">Gallery</a>
+              </li>
+              <li class="mb-2">
+                <a href="#" class="text-white text-decoration-none">About Us</a>
+              </li>
+              <li class="mb-2">
+                <a href="#" class="text-white text-decoration-none">Blog</a>
+              </li>
+              <li>
+                <a href="#" class="text-white text-decoration-none">Contact</a>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Services Column -->
+          <div class="col-lg-2 col-md-6">
+            <h5 class="mb-3">Services</h5>
+            <ul class="list-unstyled">
+              <li class="mb-2">
+                <a href="#" class="text-white text-decoration-none"
+                  >Hair Styling</a
+                >
+              </li>
+              <li class="mb-2">
+                <a href="#" class="text-white text-decoration-none"
+                  >Nail Care</a
+                >
+              </li>
+              <li class="mb-2">
+                <a href="#" class="text-white text-decoration-none"
+                  >Skin Care</a
+                >
+              </li>
+              <li class="mb-2">
+                <a href="#" class="text-white text-decoration-none">Makeup</a>
+              </li>
+              <li>
+                <a href="#" class="text-white text-decoration-none"
+                  >Spa Treatments</a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <!-- Contact Column -->
+          <div class="col-lg-4 col-md-6">
+            <h5 class="mb-3">Contact Us</h5>
+            <ul class="list-unstyled">
+              <li class="mb-3 d-flex align-items-start">
+                <i class="fas fa-map-marker-alt me-2 mt-1"></i>
+                <span>123 Beauty Street, Salon City, SC 12345</span>
+              </li>
+              <li class="mb-3 d-flex align-items-center">
+                <i class="fas fa-phone me-2"></i>
+                <span>(123) 456-7890</span>
+              </li>
+              <li class="mb-3 d-flex align-items-center">
+                <i class="fas fa-envelope me-2"></i>
+                <span>info@pendezasalon.com</span>
+              </li>
+              <li class="d-flex align-items-center">
+                <i class="fas fa-clock me-2"></i>
+                <span>Mon-Sat: 9AM - 8PM<br />Sun: 10AM - 6PM</span>
+              </li>
+            </ul>
+          </div>
         </div>
+
+        <hr class="my-4" style="border-color: rgba(255, 255, 255, 0.1)" />
+
+        <div class="row align-items-center">
+          <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+            <p class="mb-0">
+              &copy; <span id="current-year">2023</span> PENDEZA SALON. All
+              rights reserved.
+            </p>
+          </div>
+          <div class="col-md-6 text-center text-md-end">
+            <a href="#" class="text-white text-decoration-none me-3"
+              >Privacy Policy</a
+            >
+            <a href="#" class="text-white text-decoration-none me-3"
+              >Terms of Service</a
+            >
+            <a href="#" class="text-white text-decoration-none">Sitemap</a>
+          </div>
+        </div>
+      </div>
     </footer>
 
     <!-- Back to Top Button -->
     <a href="#" class="back-to-top" id="backToTop">
-        <i class="fas fa-arrow-up"></i>
+      <i class="fas fa-arrow-up"></i>
     </a>
 
     <!-- SweetAlert2 JS -->
@@ -457,98 +583,115 @@
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.min.js" integrity="sha384-VQqxDN0EQCkWoxt/0vsQvZswzTHUVOImccYmSyhJTp7kGtPed0Qcx8rK9h9YEgx+" crossorigin="anonymous"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+      integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.min.js"
+      integrity="sha384-VQqxDN0EQCkWoxt/0vsQvZswzTHUVOImccYmSyhJTp7kGtPed0Qcx8rK9h9YEgx+"
+      crossorigin="anonymous"
+    ></script>
 
     <!-- Custom JS -->
     <script>
-        // Preloader
-        window.addEventListener('load', function() {
-            const preloader = document.getElementById('preloader');
-            setTimeout(function() {
-                preloader.style.opacity = '0';
-                setTimeout(function() {
-                    preloader.style.display = 'none';
-                }, 500);
-            }, 500);
+      // Preloader
+      window.addEventListener('load', function() {
+          const preloader = document.getElementById('preloader');
+          setTimeout(function() {
+              preloader.style.opacity = '0';
+              setTimeout(function() {
+                  preloader.style.display = 'none';
+              }, 500);
+          }, 500);
+      });
+
+      // Navbar scroll effect
+      window.addEventListener('scroll', function() {
+          const navbar = document.querySelector('.navbar');
+          if (window.scrollY > 50) {
+              navbar.classList.add('scrolled');
+          } else {
+              navbar.classList.remove('scrolled');
+          }
+      });
+
+      // Back to top button
+      window.addEventListener('scroll', function() {
+          const backToTop = document.getElementById('backToTop');
+          if (window.pageYOffset > 300) {
+              backToTop.classList.add('active');
+          } else {
+              backToTop.classList.remove('active');
+          }
+      });
+
+      document.getElementById('backToTop').addEventListener('click', function(e) {
+          e.preventDefault();
+          window.scrollTo({
+              top: 0,
+              behavior: 'smooth'
+          });
+      });
+
+      // Update copyright year
+      document.getElementById('current-year').textContent = new Date().getFullYear();
+
+      // Initialize AOS animation
+      AOS.init({
+          duration: 800,
+          easing: 'ease-in-out',
+          once: true
+      });
+
+      // SweetAlert for Django Messages
+      {% if messages %}
+          {% for message in messages %}
+              Swal.fire({
+                  title: '{{ message.tags|title }}',
+                  text: '{{ message }}',
+                  icon: '{{ message.tags }}',
+                  confirmButtonColor: 'var(--primary-color)',
+                  timer: 3000,
+                  timerProgressBar: true,
+                  toast: true,
+                  position: 'top-end',
+                  showConfirmButton: false
+              });
+          {% endfor %}
+      {% endif %}
+
+      // Custom confirm for logout
+      document.querySelectorAll('form[action*="logout"] button[type="submit"]').forEach(button => {
+          button.addEventListener('click', function(e) {
+              e.preventDefault();
+              const form = this.closest('form');
+
+              Swal.fire({
+                  title: 'Logout?',
+                  text: 'Are you sure you want to logout?',
+                  icon: 'question',
+                  showCancelButton: true,
+                  confirmButtonColor: 'var(--primary-color)',
+                  cancelButtonColor: '#d33',
+                  confirmButtonText: 'Yes, logout!'
+              }).then((result) => {
+                  if (result.isConfirmed) {
+                      form.submit();
+                  }
+              });
+          });
+      });
+
+ 
+        $(document).ready(function(){
+        // Auto-cycle the carousel every 5 seconds
+        $('#reviewsCarousel').carousel({
+            interval: 5000
+        });
         });
 
-        // Navbar scroll effect
-        window.addEventListener('scroll', function() {
-            const navbar = document.querySelector('.navbar');
-            if (window.scrollY > 50) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
-        });
-
-        // Back to top button
-        window.addEventListener('scroll', function() {
-            const backToTop = document.getElementById('backToTop');
-            if (window.pageYOffset > 300) {
-                backToTop.classList.add('active');
-            } else {
-                backToTop.classList.remove('active');
-            }
-        });
-
-        document.getElementById('backToTop').addEventListener('click', function(e) {
-            e.preventDefault();
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        });
-
-        // Update copyright year
-        document.getElementById('current-year').textContent = new Date().getFullYear();
-
-        // Initialize AOS animation
-        AOS.init({
-            duration: 800,
-            easing: 'ease-in-out',
-            once: true
-        });
-
-        // SweetAlert for Django Messages
-        {% if messages %}
-            {% for message in messages %}
-                Swal.fire({
-                    title: '{{ message.tags|title }}',
-                    text: '{{ message }}',
-                    icon: '{{ message.tags }}',
-                    confirmButtonColor: 'var(--primary-color)',
-                    timer: 3000,
-                    timerProgressBar: true,
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false
-                });
-            {% endfor %}
-        {% endif %}
-
-        // Custom confirm for logout
-        document.querySelectorAll('form[action*="logout"] button[type="submit"]').forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                const form = this.closest('form');
-
-                Swal.fire({
-                    title: 'Logout?',
-                    text: 'Are you sure you want to logout?',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: 'var(--primary-color)',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes, logout!'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
-                });
-            });
-        });
     </script>
-</body>
+  </body>
 </html>

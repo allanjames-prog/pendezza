@@ -9,8 +9,6 @@ urlpatterns = [
   path('logout/', views.logout_view, name="logout"),
   path("sign_in/", views.loginViewTemp, name="sign_in"),
   
-  # path('request-reset-email/', RequestPasswordResetEmail.as_view(), name="request-reset-email"),
-  # path('reset-password/<uidb64>/<token>/', CompletePasswordReset.as_view(), name="reset-password"),
 
 ]
 

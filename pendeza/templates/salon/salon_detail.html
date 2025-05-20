@@ -428,6 +428,63 @@ Pendeza Salon{% endblock %} {% block content %}
   font-weight: bold;
   z-index: 1;
 }
+
+/* Star Rating */
+.star-rating {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+}
+
+.star-rating input {
+  display: none;
+}
+
+.star-rating label {
+  color: #ddd;
+  font-size: 1.5rem;
+  padding: 0 0.2rem;
+  cursor: pointer;
+}
+
+.star-rating input:checked ~ label,
+.star-rating input:hover ~ label {
+  color: #ffc107;
+}
+
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+  color: #ffc107;
+}
+
+/* Review Cards */
+.review-card {
+  background: white;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  height: 100%;
+}
+
+.review-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.review-user {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 1rem;
+}
+
+.review-date {
+  color: #6c757d;
+  font-size: 0.8rem;
+}
+
 </style>
 
 <!-- Salon Hero Section -->
@@ -897,107 +954,182 @@ Pendeza Salon{% endblock %} {% block content %}
 </style>
 
 
+{% load review_filters %}
+
 <!-- Reviews Section -->
 <section class="reviews-section" id="reviews">
   <div class="container">
     <div class="text-center mb-5">
       <h2 class="fw-bold">Customer Reviews</h2>
       <p class="text-muted">What our clients say about us</p>
+      {% if review_summary %}
+        <div class="rating-summary">
+          <div class="average-rating">
+            <span class="display-4 fw-bold">{{ review_summary.average_rating|floatformat:1 }}</span>
+            <span class="text-muted">/5</span>
+          </div>
+          <div class="stars mb-2">
+            {% with ''|center:5 as range %}
+              {% for _ in range %}
+                {% if forloop.counter <= review_summary.average_rating %}
+                  <i class="fas fa-star text-warning"></i>
+                {% else %}
+                  <i class="far fa-star text-warning"></i>
+                {% endif %}
+              {% endfor %}
+            {% endwith %}
+          </div>
+          <p class="text-muted">Based on {{ review_summary.review_count }} reviews</p>
+        </div>
+      {% endif %}
     </div>
 
-    <div class="row">
-      <div class="col-lg-4 mb-4">
-        <div class="review-card">
-          <div class="review-header">
-            <img
-              src="https://randomuser.me/api/portraits/women/44.jpg"
-              class="review-user"
-              alt="User"
-            />
-            <div>
-              <div class="review-stars">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-              </div>
-              <h6 class="mb-0">Sarah Johnson</h6>
-              <small class="review-date">2 weeks ago</small>
+    <!-- Fading Reviews Container -->
+    {% if reviews|length > 0 %}
+      <div class="review-fade-container">
+        {% for review_group in reviews|chunks:3 %}
+          <div class="review-fade-item {% if forloop.first %}active{% endif %}">
+            <div class="row">
+              {% for review in review_group %}
+                <div class="col-lg-4 mb-4">
+                  <div class="review-card">
+                    <div class="review-header">
+                      <img
+                        src="{% if review.user.profile.avatar %}{{ review.user.profile.avatar.url }}{% else %}https://randomuser.me/api/portraits/{% if review.user.gender == 'F' %}women{% else %}men{% endif %}/{{ review.user.id|slice:':2' }}.jpg{% endif %}"
+                        class="review-user"
+                        alt="{{ review.user.get_full_name }}"
+                      />
+                      <div>
+                        <div class="review-stars">
+                          {% with ''|center:5 as range %}
+                            {% for _ in range %}
+                              {% if forloop.counter <= review.rating %}
+                                <i class="fas fa-star text-warning"></i>
+                              {% else %}
+                                <i class="far fa-star text-warning"></i>
+                              {% endif %}
+                            {% endfor %}
+                          {% endwith %}
+                        </div>
+                        <h6 class="mb-0">{{ review.user.get_full_name }}</h6>
+                        <small class="review-date">{{ review.created_at|timesince }} ago</small>
+                      </div>
+                    </div>
+                    <p>"{{ review.comment }}"</p>
+                  </div>
+                </div>
+              {% endfor %}
             </div>
           </div>
-          <p>
-            "Absolutely love this salon! The atmosphere is so relaxing and the
-            staff are incredibly talented. My hair has never looked better!"
-          </p>
-        </div>
+        {% endfor %}
       </div>
-
-      <div class="col-lg-4 mb-4">
-        <div class="review-card">
-          <div class="review-header">
-            <img
-              src="https://randomuser.me/api/portraits/men/32.jpg"
-              class="review-user"
-              alt="User"
-            />
-            <div>
-              <div class="review-stars">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star-half-alt"></i>
-              </div>
-              <h6 class="mb-0">Michael Brown</h6>
-              <small class="review-date">1 month ago</small>
-            </div>
-          </div>
-          <p>
-            "Great experience from start to finish. The stylist listened to what
-            I wanted and delivered exactly that. Will definitely be back!"
-          </p>
-        </div>
+    {% else %}
+      <div class="col-12 text-center">
+        <p class="text-muted">No reviews yet. Be the first to review!</p>
       </div>
-
-      <div class="col-lg-4 mb-4">
-        <div class="review-card">
-          <div class="review-header">
-            <img
-              src="https://randomuser.me/api/portraits/women/68.jpg"
-              class="review-user"
-              alt="User"
-            />
-            <div>
-              <div class="review-stars">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="far fa-star"></i>
-              </div>
-              <h6 class="mb-0">Emily Davis</h6>
-              <small class="review-date">2 months ago</small>
-            </div>
-          </div>
-          <p>
-            "Beautiful salon with excellent service. The only reason I didn't
-            give 5 stars is because my appointment started 10 minutes late."
-          </p>
-        </div>
-      </div>
-    </div>
+    {% endif %}
 
     <div class="text-center mt-3">
-      <a href="#" class="btn btn-outline-primary me-3">
-        <i class="fas fa-star me-2"></i> Leave a Review
-      </a>
+      {% if user.is_authenticated %}
+        <button class="btn btn-outline-primary me-3" data-bs-toggle="modal" data-bs-target="#reviewModal">
+          <i class="fas fa-star me-2"></i> Leave a Review
+        </button>
+      {% else %}
+        <a href="{% url 'userauthentication:sign_in' %}?next={{ request.path }}" class="btn btn-outline-primary me-3">
+          <i class="fas fa-star me-2"></i> Leave a Review
+        </a>
+      {% endif %}
       <a href="#" class="btn btn-primary">
         <i class="fas fa-list me-2"></i> See All Reviews
       </a>
     </div>
   </div>
 </section>
+
+<!-- Review Modal (unchanged) -->
+
+<!-- Review Modal -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reviewModalLabel">Write a Review</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="reviewForm" action="{% url 'salon:add_review' salon.slug %}" method="POST">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Rating</label>
+            <div class="star-rating">
+              {% for i in "54321" %}
+                <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" required/>
+                <label for="star{{ i }}" title="{{ i }} stars"><i class="fas fa-star"></i></label>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="comment" class="form-label">Your Review</label>
+            <textarea class="form-control" id="comment" name="comment" rows="3" required></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="submit" form="reviewForm" class="btn btn-primary">Submit Review</button>
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+  .review-fade-container {
+    position: relative;
+    min-height: 300px; /* Adjust based on your content */
+  }
+  .review-fade-item {
+    position: absolute;
+    width: 100%;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+    top: 0;
+    left: 0;
+  }
+  .review-fade-item.active {
+    opacity: 1;
+    position: relative;
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const fadeContainer = document.querySelector('.review-fade-container');
+  if (fadeContainer) {
+    const items = document.querySelectorAll('.review-fade-item');
+    let currentIndex = 0;
+    const totalItems = items.length;
+    
+    function cycleReviews() {
+      // Hide all items
+      items.forEach(item => item.classList.remove('active'));
+      
+      // Show current item
+      items[currentIndex].classList.add('active');
+      
+      // Move to next item
+      currentIndex = (currentIndex + 1) % totalItems;
+      
+      // Schedule next transition
+      setTimeout(cycleReviews, 5000); // Change every 5 seconds
+    }
+    
+    // Start the cycling
+    if (totalItems > 0) {
+      setTimeout(cycleReviews, 5000);
+    }
+  }
+});
+</script>
+
 
 <!-- Booking Section -->
 <section class="booking-section" id="booking">
@@ -1138,12 +1270,19 @@ Pendeza Salon{% endblock %} {% block content %}
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Fetch services from API
+  const container = document.getElementById('services-container');
+  const spinner = container.querySelector('.spinner-border');
+  
   fetch(`/salon/{{ salon.slug }}/services/`)
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
     .then(services => {
-      const container = document.getElementById('services-container');
-      container.innerHTML = '';
+      // Remove spinner
+      spinner.remove();
       
       if (services.length === 0) {
         container.innerHTML = `
@@ -1156,9 +1295,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // Display active services
       const activeServices = services.filter(service => service.is_active);
+      let servicesHTML = '';
       
       activeServices.slice(0, 6).forEach(service => {
-        const price = service.gender === 'Unisex' ? 
+        // Use the correct field names from your API response
+        const price = service.gender === 'Unisex' || !service.gender ? 
           `$${service.base_price}+` : 
           `From $${service.base_price}+`;
         
@@ -1168,7 +1309,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const icon = service.icon ? 
           `<i class="${service.icon} me-2"></i>` : '';
         
-        container.innerHTML += `
+        servicesHTML += `
           <div class="col-md-6 col-lg-4 mb-4">
             <div class="service-card h-100" data-service-id="${service.id}">
               ${featuredBadge}
@@ -1187,7 +1328,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     ${service.duration} min
                   </span>
                   <span class="service-category badge bg-light text-dark">
-                    ${service.category_display}
+                    ${service.category}  <!-- Changed from category_display -->
                   </span>
                   <button class="btn btn-sm btn-primary view-details" 
                           data-service-id="${service.id}">
@@ -1199,6 +1340,8 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
         `;
       });
+
+      container.innerHTML = servicesHTML;
 
       // Show "View All" button if more than 6 services
       if (activeServices.length > 6) {
@@ -1215,51 +1358,50 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     .catch(error => {
       console.error('Error loading services:', error);
-      document.getElementById('services-container').innerHTML = `
+      spinner.remove();
+      container.innerHTML = `
         <div class="col-12 text-center">
           <p class="text-danger">Error loading services. Please try again later.</p>
         </div>
       `;
     });
 
-  // Function to show service details in modal
-  function showServiceDetails(serviceId) {
-    fetch(`/salon/{{ salon.slug }}/services/${serviceId}/`)
-      .then(response => response.json())
-      .then(service => {
-        document.getElementById('serviceModalTitle').textContent = service.name;
-        
-        const priceInfo = service.women_price || service.men_price || service.children_price ?
-          `
-          <p><strong>Pricing:</strong><br>
-          Base: $${service.base_price}<br>
-          ${service.women_price ? `Women: $${service.women_price}<br>` : ''}
-          ${service.men_price ? `Men: $${service.men_price}<br>` : ''}
-          ${service.children_price ? `Children: $${service.children_price}<br>` : ''}
-          </p>
-          ` : `<p><strong>Price:</strong> $${service.base_price}+</p>`;
-        
-        document.getElementById('serviceModalBody').innerHTML = `
-          ${service.description ? `<p>${service.description}</p>` : ''}
-          ${priceInfo}
-          <p><strong>Duration:</strong> ${service.duration} minutes</p>
-          <p><strong>Category:</strong> ${service.category_display}</p>
-          <p><strong>Gender:</strong> ${service.gender_display}</p>
-          ${service.is_featured ? '<span class="badge bg-warning text-dark">Featured Service</span>' : ''}
-        `;
-        
-        // Update booking link
-        const bookBtn = document.querySelector('#serviceModal .btn-primary');
-        bookBtn.href = `#booking?service=${service.id}`;
-        
-        // Show modal
-        new bootstrap.Modal(document.getElementById('serviceModal')).show();
-      })
-      .catch(error => {
-        console.error('Error loading service details:', error);
-        alert('Error loading service details');
-      });
-  }
+  // Rest of your code...
 });
+
+
+document.getElementById('reviewForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = {
+        rating: form.rating.value,
+        comment: form.comment.value,
+        csrfmiddlewaretoken: form.csrfmiddlewaretoken.value
+    };
+
+    fetch(form.action, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': form.csrfmiddlewaretoken.value
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Close the modal and refresh the reviews section
+            bootstrap.Modal.getInstance(document.getElementById('reviewModal')).hide();
+            location.reload(); // Or better: dynamically add the new review to the page
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('An error occurred: ' + error);
+    });
+});
+
 </script>
+
 {% endblock %}
