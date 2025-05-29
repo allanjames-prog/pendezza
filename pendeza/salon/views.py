@@ -202,6 +202,7 @@ class SalonGalleryStatusUpdateView(LoginRequiredMixin, View):
         
         return JsonResponse({'success': True, 'message': 'Image status updated successfully'})
     
+
 # ===============================================
 # SALON TEAM LIST VIEW
 # ===============================================
@@ -214,10 +215,16 @@ class TeamListView(ListView):
     context_object_name = 'staff_members'
     
     def get_queryset(self):
-        return StaffOnDuty.objects.filter(
+        queryset = StaffOnDuty.objects.filter(
             salon__slug=self.kwargs['slug'],
             status='Active'
-        ).order_by('display_order')
+        ).select_related('user').prefetch_related('specialization').order_by('display_order')
+        return queryset
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['salon'] = get_object_or_404(Salon, slug=self.kwargs['slug'])
+        return context
 
 class TeamDetailView(DetailView):
     model = StaffOnDuty
@@ -439,19 +446,15 @@ class SalonFaqDeleteView(LoginRequiredMixin, View):
 # ===============================================
 @method_decorator(csrf_exempt, name='dispatch')
 class SalonServiceAPIView(View):
-    """Handles all service CRUD operations in one view"""
+    """Handles all service CRUD operations with public read access"""
     
     def get(self, request, slug, service_id=None):
         """
-        GET: Retrieve single service or list of all services
+        GET: Retrieve single service or list of all services (public access)
         - /salon/<slug>/services/ (list all)
         - /salon/<slug>/services/<service_id>/ (single service)
         """
         salon = get_object_or_404(Salon, slug=slug)
-        
-        # Verify ownership
-        if request.user != salon.user and not request.user.is_staff:
-            return JsonResponse({'error': 'Permission denied'}, status=403)
         
         if service_id:  # Single service
             service = get_object_or_404(SalonServices, id=service_id, salon=salon)
@@ -479,12 +482,35 @@ class SalonServiceAPIView(View):
             services_data = [{
                 'id': s.id,
                 'name': s.name,
+                'description': s.description,
                 'base_price': str(s.base_price),
+                'women_price': str(s.women_price) if s.women_price else None,
+                'men_price': str(s.men_price) if s.men_price else None,
+                'children_price': str(s.children_price) if s.children_price else None,
                 'duration': s.duration,
-                'category': s.get_category_display(),
-                'is_active': s.is_active
+                'category': s.category,
+                'category_display': s.get_category_display(),
+                'gender': s.gender,
+                'gender_display': s.get_gender_display(),
+                'is_featured': s.is_featured,
+                'is_active': s.is_active,
+                'icon': s.icon,
+                'created_at': s.created_at.isoformat(),
             } for s in services]
             return JsonResponse(services_data, safe=False)
+    
+    def dispatch(self, request, *args, **kwargs):
+        """Check permissions for non-GET methods"""
+        if request.method != 'GET':
+            if not request.META.get('HTTP_X_CSRFTOKEN') == request.COOKIES.get('csrftoken'):
+                return JsonResponse({'error': 'CSRF verification failed'}, status=403)
+            
+            salon = get_object_or_404(Salon, slug=kwargs.get('slug'))
+            if request.user != salon.user and not request.user.is_staff:
+                return JsonResponse({'error': 'Permission denied'}, status=403)
+        
+        return super().dispatch(request, *args, **kwargs)
+
     
     def post(self, request, slug):
         """
@@ -604,7 +630,6 @@ class SalonServiceAPIView(View):
 # ============================================
 # SALON REVIEWS
 # ============================================
-
 @login_required
 def add_review(request, slug):
     if request.method == 'POST':
@@ -612,8 +637,19 @@ def add_review(request, slug):
             data = request.POST
             salon = get_object_or_404(Salon, slug=slug)
             user = request.user
-            rating = int(data.get('rating'))
-            comment = data.get('comment')
+
+            rating_str = data.get('rating')
+            if not rating_str:
+                return JsonResponse({'success': False, 'error': 'Rating is required'}, status=400)
+            
+            try:
+                rating = int(rating_str)
+                if rating < 1 or rating > 5:
+                    return JsonResponse({'success': False, 'error': 'Rating must be between 1 and 5'}, status=400)
+            except ValueError:
+                return JsonResponse({'success': False, 'error': 'Rating must be a number'}, status=400)
+
+            comment = data.get('comment', '').strip()
 
             review = SalonReview.objects.create(
                 salon=salon,
@@ -622,7 +658,10 @@ def add_review(request, slug):
                 comment=comment
             )
 
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True})
             return redirect('salon:salon_detail', slug=salon.slug)
+            
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=400)
 

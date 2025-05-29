@@ -1,55 +1,56 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block content %}
 
-<style>
-.review-card {
-    transition: transform 0.3s ease;
-}
-.review-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-}
-.star-rating label {
-    cursor: pointer;
-    font-size: 1.5rem;
-}
-</style>
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/allreviews.css' %}">
+{% endblock %}
+
 <div class="container py-5">
     <div class="row">
         <div class="col-lg-8 mx-auto">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2>All Reviews for {{ salon.name }}</h2>
-                <a href="{% url 'salon:detail' salon.slug %}" class="btn btn-outline-primary">
-                    Back to Salon
+                <h2 class="page-title">All Reviews for {{ salon.name }}</h2>
+                <a href="{% url 'salon:detail' salon.slug %}" class="btn btn-outline-primary back-btn">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Salon
                 </a>
             </div>
 
             {% if reviews %}
-                {% for review in reviews %}
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-2">
-                            <img src="{% if review.user.profile.avatar %}{{ review.user.profile.avatar.url }}{% else %}https://randomuser.me/api/portraits/{% if review.user.gender == 'F' %}women{% else %}men{% endif %}/{{ review.user.id|slice:":2" }}.jpg{% endif %}" 
-                                 class="rounded-circle me-3" width="50" height="50" alt="{{ review.user.get_full_name }}">
-                            <div>
-                                <h5 class="mb-0">{{ review.user.get_full_name }}</h5>
-                                <div class="text-warning">
-                                    {% for i in "12345" %}
-                                        {% if forloop.counter <= review.rating %}
-                                            <i class="fas fa-star"></i>
-                                        {% else %}
-                                            <i class="far fa-star"></i>
-                                        {% endif %}
-                                    {% endfor %}
+                <div id="reviews-container">
+                    {% for review in reviews %}
+                    <div class="card mb-3 review-card" data-review-id="{{ review.id }}">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2 user-info">
+                                <img src="{% if review.user.profile.avatar %}{{ review.user.profile.avatar.url }}{% else %}https://randomuser.me/api/portraits/{% if review.user.gender == 'F' %}women{% else %}men{% endif %}/{{ review.user.id|slice:":2" }}.jpg{% endif %}" 
+                                     class="rounded-circle me-3 user-avatar" width="50" height="50" alt="{{ review.user.get_full_name }}">
+                                <div>
+                                    <h5 class="mb-0">{{ review.user.get_full_name }}</h5>
+                                    <div class="star-rating">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= review.rating %}
+                                                <i class="fas fa-star filled-star"></i>
+                                            {% else %}
+                                                <i class="far fa-star empty-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <small class="text-muted review-date">{{ review.created_at|date:"F j, Y" }}</small>
                                 </div>
-                                <small class="text-muted">{{ review.created_at|date:"F j, Y" }}</small>
                             </div>
+                            <p class="mb-0 review-content">{{ review.comment }}</p>
+                            
+                            {% if review.user == request.user %}
+                            <div class="review-actions mt-3 text-end">
+                                <button class="btn btn-sm btn-outline-danger delete-review" data-review-id="{{ review.id }}">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                            {% endif %}
                         </div>
-                        <p class="mb-0">{{ review.comment }}</p>
                     </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
 
                 <!-- Pagination -->
                 {% if is_paginated %}
@@ -57,28 +58,47 @@
                     <ul class="pagination justify-content-center">
                         {% if page_obj.has_previous %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                <i class="fas fa-chevron-left"></i> Previous
+                            </a>
                         </li>
                         {% endif %}
                         
                         {% for num in page_obj.paginator.page_range %}
-                        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                        </li>
+                            {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endif %}
                         {% endfor %}
                         
                         {% if page_obj.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                Next <i class="fas fa-chevron-right"></i>
+                            </a>
                         </li>
                         {% endif %}
                     </ul>
                 </nav>
                 {% endif %}
             {% else %}
-                <div class="alert alert-info">No reviews yet.</div>
+                <div class="alert alert-info no-reviews">
+                    <i class="far fa-comment-dots fa-3x mb-3" style="color: #6c63ff;"></i>
+                    <h4>No Reviews Yet</h4>
+                    <p class="mb-0">Be the first to share your experience with this salon!</p>
+                </div>
             {% endif %}
         </div>
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/allreviews.js' %}"></script>
+{% endblock %}
+

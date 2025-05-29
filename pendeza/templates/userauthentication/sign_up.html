@@ -1,5 +1,10 @@
 {% extends 'base.html' %}
-{% block title %}Sign Up | LUXE SALON{% endblock %}
+{% load static %}
+{% block title %}Sign Up | PENDEZA SALON{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/signup.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -109,59 +114,9 @@
         </div>
     </div>
 </div>
-
-<style>
-    .card {
-        border-radius: 12px;
-        overflow: hidden;
-    }
-    
-    .form-control {
-        border: 1px solid #e0e0e0;
-        transition: all 0.3s;
-    }
-    
-    .form-control:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.25rem rgba(200, 162, 200, 0.25);
-    }
-    
-    .btn-primary {
-        background-color: var(--primary-color);
-        border-color: var(--primary-color);
-        transition: all 0.3s;
-    }
-    
-    .btn-primary:hover {
-        background-color: #b591b5;
-        border-color: #b591b5;
-        transform: translateY(-2px);
-    }
-    
-    .invalid-feedback {
-        font-size: 0.85rem;
-    }
-</style>
-
-<script>
-    // Form validation
-    (function() {
-        'use strict';
-        
-        // Fetch all the forms we want to apply custom validation styles to
-        const forms = document.querySelectorAll('.needs-validation');
-        
-        // Loop over them and prevent submission
-        Array.from(forms).forEach(form => {
-            form.addEventListener('submit', event => {
-                if (!form.checkValidity()) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                
-                form.classList.add('was-validated');
-            }, false);
-        });
-    })();
-</script>
 {% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/signup.js' %}"></script>
+{% endblock %}
+
