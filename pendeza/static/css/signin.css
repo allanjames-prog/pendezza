@@ -1,0 +1,35 @@
+.login-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+.card {
+    border-radius: 12px;
+}
+
+.form-control {
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(200, 162, 200, 0.25);
+}
+
+.toggle-password {
+    border-left: none;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    transition: all 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #b591b5;
+    border-color: #b591b5;
+    transform: translateY(-2px);
+}
