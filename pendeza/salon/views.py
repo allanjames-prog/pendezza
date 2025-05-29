@@ -209,17 +209,30 @@ class SalonGalleryStatusUpdateView(LoginRequiredMixin, View):
 from django.views.generic import ListView, DetailView
 from .models import StaffOnDuty
 
+def salon_detail(request, salon_id):
+    salon = get_object_or_404(Salon, id=salon_id)
+    staff_members = salon.staff_members.filter(status='Active').order_by('display_order')[:4]  # Get first 4 active staff
+    
+    context = {
+        'salon': salon,
+        'staff_members': staff_members,
+        # ... your other context data ...
+    }
+    return render(request, 'salon_detail.html', context)
+
+
 class TeamListView(ListView):
     model = StaffOnDuty
     template_name = 'salon/team_list.html'
     context_object_name = 'staff_members'
     
     def get_queryset(self):
-        queryset = StaffOnDuty.objects.filter(
+        print(f"All staff for salon: {StaffOnDuty.objects.filter(salon__slug=self.kwargs['slug']).count()}")
+        print(f"Active staff for salon: {StaffOnDuty.objects.filter(salon__slug=self.kwargs['slug'], status='Active').count()}")
+        return StaffOnDuty.objects.filter(
             salon__slug=self.kwargs['slug'],
             status='Active'
         ).select_related('user').prefetch_related('specialization').order_by('display_order')
-        return queryset
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -258,34 +271,11 @@ class TeamMemberUpdateView(LoginRequiredMixin, UpdateView):
 
 # ========== STAFF AVAILABILITY CHECK ==========
 class StaffAvailabilityView(LoginRequiredMixin, View):
-    def get(self, request):
-        staff_id = request.GET.get('staff_id')
-        date = request.GET.get('date')
-        service_id = request.GET.get('service_id')
-        
-        if not all([staff_id, date, service_id]):
-            return JsonResponse({'error': 'Missing parameters'}, status=400)
-        
-        try:
-            staff = User.objects.get(pk=staff_id)
-            service = SalonServices.objects.get(pk=service_id)
-            booking_date = datetime.strptime(date, '%Y-%m-%d').date()
-        except (User.DoesNotExist, SalonServices.DoesNotExist, ValueError):
-            return JsonResponse({'error': 'Invalid parameters'}, status=400)
-        
-        # Get existing bookings for this staff member on this date
-        bookings = Booking.objects.filter(
-            staff_member=staff,
-            booking_date=booking_date
-        ).exclude(status=BookingStatus.CANCELLED)
-        
-        # Get staff working hours (you'll need to implement this based on your StaffOnDuty model)
-        working_hours = self.get_staff_working_hours(staff, booking_date)
-        
-        # Calculate available slots
-        available_slots = self.calculate_available_slots(working_hours, bookings, service.duration)
-        
-        return JsonResponse({'available_slots': available_slots})
+    def get(self, request, *args, **kwargs):
+        response = super().get(request, *args, **kwargs)
+        print(f"Template: {self.template_name}")
+        print(f"Staff count in context: {len(response.context_data['staff_members'])}")
+        return response
 
     def get_staff_working_hours(self, staff, date):
         try:
@@ -384,7 +374,6 @@ class SalonFeaturesDeleteView(LoginRequiredMixin, View):
 # ===============================================
 # SALON FAQ
 # ===============================================
-
 # ========== SALON FAQ VIEW ==========
 class SalonFaqView(LoginRequiredMixin, View):
     def post(self, request, slug):

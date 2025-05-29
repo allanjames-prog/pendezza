@@ -39,14 +39,6 @@
                                 </div>
                             </div>
                             <p class="mb-0 review-content">{{ review.comment }}</p>
-                            
-                            {% if review.user == request.user %}
-                            <div class="review-actions mt-3 text-end">
-                                <button class="btn btn-sm btn-outline-danger delete-review" data-review-id="{{ review.id }}">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
-                            </div>
-                            {% endif %}
                         </div>
                     </div>
                     {% endfor %}

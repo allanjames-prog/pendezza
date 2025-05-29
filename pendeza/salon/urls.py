@@ -52,6 +52,8 @@ urlpatterns = [
     path('salon/<slug:slug>/services/<int:service_id>/', SalonServiceAPIView.as_view(), name='salon-service-detail'),
     path('salon/<slug:slug>/services/<int:service_id>/delete/', SalonServiceAPIView.as_view(), name='salon-service-delete'),
     path('salon/<slug:slug>/services/<int:service_id>/update/', SalonServiceAPIView.as_view(), name='salon-service-update'),
+    
+    path('salon/<slug:slug>/team/', TeamListView.as_view(), name='team_list'),
 
     # Team
     path('<slug:slug>/team/', TeamListView.as_view(), name='team_list'),

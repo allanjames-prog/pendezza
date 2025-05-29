@@ -156,6 +156,19 @@ function initDatePicker() {
     timeInput.step = "1800"; // 30 minutes
   }
 }
+function renderServices(container, spinner, services) {
+  spinner?.remove();
+  
+  if (!services || services.length === 0) {
+    container.innerHTML = `
+      <div class="col-12 text-center">
+        <p class="text-muted">No services available at this time</p>
+      </div>
+    `;
+    return;
+  }
+}
+
 
 // Services loader
 function loadServices() {

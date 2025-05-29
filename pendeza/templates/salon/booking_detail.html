@@ -1,0 +1,410 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+
+    <!-- Breadcrumb navigation -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'booking_list' %}">My Bookings</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Booking #{{ booking.booking_id.hex|slice:":6"|upper }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">
+                        <i class="fas fa-calendar-check me-2"></i>
+                        Booking #{{ booking.booking_id.hex|slice:":6"|upper }}
+                    </h3>
+                    <div>
+                        <span class="badge {{ booking.get_status_badge }} me-2">
+                            {{ booking.get_status_display }}
+                        </span>
+                        <span class="badge {{ booking.get_payment_status_badge }}">
+                            {{ booking.get_payment_status_display }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Booking Details</h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <strong><i class="fas fa-store me-2"></i>Salon:</strong>
+                                    {{ booking.salon.name }}
+                                </li>
+                                <li class="mb-2">
+                                    <strong><i class="fas fa-cut me-2"></i>Service:</strong>
+                                    {{ booking.service.name }}
+                                </li>
+                                <li class="mb-2">
+                                    <strong><i class="fas fa-user me-2"></i>Staff:</strong>
+                                    {% if booking.staff_member %}
+                                        {{ booking.staff_member.get_full_name }}
+                                    {% else %}
+                                        Any Available Staff
+                                    {% endif %}
+                                </li>
+                                <li class="mb-2">
+                                    <strong><i class="fas fa-calendar-day me-2"></i>Date:</strong>
+                                    {{ booking.booking_date|date:"F j, Y" }}
+                                </li>
+                                <li class="mb-2">
+                                    <strong><i class="fas fa-clock me-2"></i>Time:</strong>
+                                    {{ booking.start_time|time:"g:i A" }} - {{ booking.end_time|time:"g:i A" }}
+                                </li>
+                                <li class="mb-2">
+                                    <strong><i class="fas fa-venus-mars me-2"></i>Gender:</strong>
+                                    {{ booking.get_gender_display }}
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Customer Details</h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <strong><i class="fas fa-user me-2"></i>Name:</strong>
+                                    {{ booking.user.get_full_name }}
+                                </li>
+                                <li class="mb-2">
+                                    <strong><i class="fas fa-envelope me-2"></i>Email:</strong>
+                                    {{ booking.user.email }}
+                                </li>
+                                <li class="mb-2">
+                                    <strong><i class="fas fa-phone me-2"></i>Phone:</strong>
+                                    {{ booking.user.phone|default:"Not provided" }}
+                                </li>
+                            </ul>
+                            
+                            <h5 class="mb-3 mt-4">Payment Details</h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <strong>Service Price:</strong> ${{ booking.price }}
+                                </li>
+                                {% if booking.discount > 0 %}
+                                <li class="mb-2">
+                                    <strong>Discount:</strong> -${{ booking.discount }}
+                                </li>
+                                {% endif %}
+                                {% if booking.tax > 0 %}
+                                <li class="mb-2">
+                                    <strong>Tax:</strong> +${{ booking.tax }}
+                                </li>
+                                {% endif %}
+                                <li class="mb-2">
+                                    <strong>Total Amount:</strong> ${{ booking.total_amount }}
+                                </li>
+                                <li class="mb-2">
+                                    <strong>Amount Paid:</strong> ${{ booking.amount_paid }}
+                                </li>
+                                <li class="mb-2">
+                                    <strong>Balance Due:</strong> ${{ booking.balance_due }}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    {% if booking.notes %}
+                    <div class="mb-4">
+                        <h5>Special Requests</h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                {{ booking.notes|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if booking.cancellation_reason %}
+                    <div class="mb-4">
+                        <h5>Cancellation Reason</h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                {{ booking.cancellation_reason|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Payment History -->
+                    {% if payment_history %}
+                    <div class="mb-4">
+                        <h5>Payment History</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Method</th>
+                                        <th>Processed By</th>
+                                        <th>Transaction ID</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payment in payment_history %}
+                                    <tr>
+                                        <td>{{ payment.created_at|date:"M j, Y g:i A" }}</td>
+                                        <td>${{ payment.amount }}</td>
+                                        <td>{{ payment.payment_method }}</td>
+                                        <td>{{ payment.processed_by.get_full_name }}</td>
+                                        <td>{{ payment.transaction_id }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <div>
+                            <a href="{% url 'booking_list' %}" class="btn btn-outline-secondary me-2">
+                                <i class="fas fa-arrow-left me-1"></i> Back to List
+                            </a>
+                            {% if booking.can_be_modified %}
+                            <a href="{% url 'booking_update' booking.pk %}" class="btn btn-primary me-2">
+                                <i class="fas fa-edit me-1"></i> Edit Booking
+                            </a>
+                            <a href="{% url 'booking_delete' booking.pk %}" class="btn btn-danger me-2">
+                                <i class="fas fa-trash-alt me-1"></i> Cancel Booking
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% if request.user == booking.salon.owner or request.user in booking.salon.staff_members.all %}
+                        <div class="btn-group dropup">
+                            <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown">
+                                <i class="fas fa-cog me-2"></i> Manage
+                            </button>
+                            <ul class="dropdown-menu">
+                                {% if booking.status != 'Cancelled' %}
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                                        <i class="fas fa-money-bill-wave me-2"></i> Make Payment
+                                    </a>
+                                </li>
+                                {% endif %}
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#notesModal">
+                                        <i class="fas fa-sticky-note me-2"></i> Add Notes
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                </div>
+                
+                <div class="card-footer text-muted">
+                    <small>
+                        Created: {{ booking.created_at|date:"M j, Y g:i A" }} | 
+                        Last Updated: {{ booking.updated_at|date:"M j, Y g:i A" }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Show confirmation before cancelling booking
+    $('a[href*="booking_delete"]').click(function(e) {
+        if (!confirm('Are you sure you want to cancel this booking?')) {
+            e.preventDefault();
+        }
+    });
+    
+    // Refresh page after status or payment updates
+    $('form#statusForm, form#paymentForm').on('ajax:success', function() {
+        setTimeout(() => location.reload(), 1000);
+    });
+});
+</script>
+
+<!-- Status Change Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statusModalLabel">Change Booking Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="statusForm" method="post" action="{% url 'booking_status_update' booking.pk %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="newStatus" class="form-label">New Status</label>
+                        <select class="form-select" id="newStatus" name="status" required>
+                            {% for value, label in booking_status_choices %}
+                                {% if value != booking.status %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3" id="reasonField" style="display: none;">
+                        <label for="cancellationReason" class="form-label">Reason for Cancellation</label>
+                        <textarea class="form-control" id="cancellationReason" name="reason" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Update Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="paymentModalLabel">Record Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="paymentForm" method="post" action="{% url 'process_payment' booking.pk %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="paymentAmount" class="form-label">Amount</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="paymentAmount" 
+                                   name="amount" min="0.01" step="0.01" 
+                                   max="{{ booking.balance_due }}" 
+                                   value="{{ booking.balance_due }}" required>
+                        </div>
+                        <div class="form-text">Balance due: ${{ booking.balance_due }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="paymentMethod" class="form-label">Payment Method</label>
+                        <select class="form-select" id="paymentMethod" name="payment_method" required>
+                            <option value="Cash">Cash</option>
+                            <option value="Credit Card">Credit Card</option>
+                            <option value="Debit Card">Debit Card</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Mobile Payment">Mobile Payment</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success">Record Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Show/hide cancellation reason field based on status selection
+    $('#newStatus').change(function() {
+        if ($(this).val() === 'Cancelled') {
+            $('#reasonField').show();
+        } else {
+            $('#reasonField').hide();
+        }
+    });
+    
+    // Handle status form submission
+    $('#statusForm').submit(function(e) {
+        e.preventDefault();
+        const form = $(this);
+        
+        $.ajax({
+            type: 'POST',
+            url: form.attr('action'),
+            data: form.serialize(),
+            success: function(response) {
+                if (response.success) {
+                    // Update status display
+                    $('.badge.bg-warning, .badge.bg-info, .badge.bg-success, .badge.bg-danger, .badge.bg-secondary')
+                        .removeClass('bg-warning bg-info bg-success bg-danger bg-secondary')
+                        .addClass(response.status_class)
+                        .text(response.new_status);
+                    
+                    // Close modal
+                    $('#statusModal').modal('hide');
+                    
+                    // Show success message
+                    showToast('Status updated successfully!', 'success');
+                }
+            },
+            error: function(xhr) {
+                showToast(xhr.responseJSON.error || 'Error updating status', 'danger');
+            }
+        });
+    });
+    
+    // Handle payment form submission
+    $('#paymentForm').submit(function(e) {
+        e.preventDefault();
+        const form = $(this);
+        
+        $.ajax({
+            type: 'POST',
+            url: form.attr('action'),
+            data: form.serialize(),
+            success: function(response) {
+                if (response.success) {
+                    // Update payment status display
+                    $('.badge.bg-warning, .badge.bg-primary, .badge.bg-success')
+                        .removeClass('bg-warning bg-primary bg-success')
+                        .addClass(response.status_class)
+                        .text(response.new_status);
+                    
+                    // Update payment info
+                    $('td:contains("Amount Paid")').next().text('$' + response.amount_paid);
+                    $('td:contains("Balance Due")').next().text('$' + response.balance_due);
+                    
+                    // Close modal
+                    $('#paymentModal').modal('hide');
+                    
+                    // Show success message
+                    showToast('Payment recorded successfully!', 'success');
+                    
+                    // Reload page to show new payment in history
+                    setTimeout(() => location.reload(), 1500);
+                }
+            },
+            error: function(xhr) {
+                showToast(xhr.responseJSON.error || 'Error processing payment', 'danger');
+            }
+        });
+    });
+    
+    function showToast(message, type) {
+        // Implement toast notification
+        const toast = `<div class="toast align-items-center text-white bg-${type} border-0 position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>`;
+        
+        $('.toast-container').append(toast);
+        $('.toast').toast('show');
+        
+        setTimeout(() => {
+            $('.toast').toast('hide').on('hidden.bs.toast', function() {
+                $(this).remove();
+            });
+        }, 3000);
+    }
+});
+</script>
+{% endblock %}

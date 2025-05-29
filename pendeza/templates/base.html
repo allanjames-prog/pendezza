@@ -48,12 +48,15 @@
       href="https://unpkg.com/swiper/swiper-bundle.min.css"
     />
 
-    <!-- Swiper JS (put before closing </body>) -->
-    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
-    {% block extra_head %}{% endblock %}
+
+    {% block extra_head %}
+    <link rel="stylesheet" href="{% static 'css/allreviews.css' %}">
+    <link rel="stylesheet" href="{% static 'css/salondetail.css' %}">
+    <link rel="stylesheet" href="{% static 'css/signin.css' %}">
+    <link rel="stylesheet" href="{% static 'css/signup.css' %}">
+    {% endblock %}
 
   </head>
   <body>
@@ -337,13 +340,10 @@
       crossorigin="anonymous"
     ></script>
 
-    <!-- Base and custom JS files -->
-    <script src="{% static 'js/signup.js' %}"></script>
-    <script src="{% static 'js/base.js' %}"></script>
-    <script src="{% static 'js/signin.js' %}"></script>
 
-    {% block extra_js %}{% endblock %}
-
+    <!-- Swiper JS (put before closing </body>) -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    
     <script>
     // SweetAlert for Django Messages (keep this in template)
     {% if messages %}
@@ -362,6 +362,18 @@
         {% endfor %}
     {% endif %}
     </script>
+
+    <!-- Base and custom JS files -->
+    <script src="{% static 'js/base.js' %}" defer></script>
+
+    <!-- Custom js -->
+    {% block extra_js %}
+    <script src="{% static 'js/allreviews.js' %}"></script>
+    <script src="{% static 'js/salondetail.js' %}"></script>
+    <script src="{% static 'js/salon.js' %}"></script>
+    <script src="{% static 'js/signup.js' %}"></script>
+    <script src="{% static 'js/signin.js' %}"></script>
+    {% endblock %}
 
   </body>
 </html>

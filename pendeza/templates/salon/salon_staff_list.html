@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Our Team at {{ salon.name }}{% endblock %}
+
+{% block content %}
+<section class="team-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h1 class="fw-bold">Our Team</h1>
+      <p class="lead">Meet the professionals at {{ salon.name }}</p>
+      <a href="{% url 'salon-detail' salon.id %}" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left me-2"></i> Back to Salon
+      </a>
+    </div>
+
+    <div class="row">
+      {% for member in staff_members %}
+      <div class="col-md-6 col-lg-4 mb-4">
+        <div class="team-card h-100">
+          {% if member.profile_pic %}
+            <img src="{{ member.profile_pic.url }}" class="team-img" alt="{{ member.user.get_full_name }}" />
+          {% else %}
+            <div class="team-img-placeholder d-flex align-items-center justify-content-center bg-light">
+              <i class="fas fa-user fa-3x text-muted"></i>
+            </div>
+          {% endif %}
+          <div class="team-info">
+            <h3>{{ member.user.get_full_name }}</h3>
+            <p class="text-muted mb-2">{{ member.get_role_display }}</p>
+            
+            {% if member.bio %}
+            <div class="team-bio mb-3">
+              <p>{{ member.bio }}</p>
+            </div>
+            {% endif %}
+            
+            {% if member.specialization.exists %}
+            <div class="specializations mb-3">
+              <h6>Specializations:</h6>
+              <div class="d-flex flex-wrap gap-2">
+                {% for service in member.specialization.all %}
+                  <span class="badge bg-primary-light text-primary">{{ service.name }}</span>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+            
+            <div class="team-schedule mb-3">
+              <h6>Today's Schedule:</h6>
+              {% with schedule=member.get_todays_schedule %}
+                {% if schedule.start and schedule.end %}
+                  <p>{{ schedule.start|time:"g:i A" }} - {{ schedule.end|time:"g:i A" }}</p>
+                  <p>Break: {{ schedule.break_start|time:"g:i A" }} - {{ schedule.break_end|time:"g:i A" }}</p>
+                {% else %}
+                  <p>Not working today</p>
+                {% endif %}
+              {% endwith %}
+            </div>
+            
+            <div class="availability-badge">
+              <span class="badge {% if member.current_status == 'On duty' %}bg-success{% elif member.current_status == 'On break' %}bg-warning{% else %}bg-secondary{% endif %}">
+                {{ member.current_status }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-12 text-center">
+        <div class="alert alert-info">No team members available at this time.</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}
