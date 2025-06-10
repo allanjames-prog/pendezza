@@ -56,6 +56,7 @@
     <link rel="stylesheet" href="{% static 'css/salondetail.css' %}">
     <link rel="stylesheet" href="{% static 'css/signin.css' %}">
     <link rel="stylesheet" href="{% static 'css/signup.css' %}">
+    <link rel="stylesheet" href="{% static 'css/salon_register.css' %}">
     {% endblock %}
 
   </head>
@@ -92,12 +93,7 @@
             <li class="nav-item mx-2">
               <a class="nav-link" href="{% url 'salon:index' %}">Home</a>
             </li>
-            <li class="nav-item mx-2">
-              <a class="nav-link" href="#">Services</a>
-            </li>
-            <li class="nav-item mx-2">
-              <a class="nav-link" href="#">Gallery</a>
-            </li>
+           
             <li class="nav-item mx-2">
               <a class="nav-link" href="#">About</a>
             </li>
@@ -162,8 +158,8 @@
                   </a>
                 </li>
                 <li>
-                  <a class="dropdown-item" href="#">
-                    <i class="fas fa-calendar-alt me-2"></i> Appointments
+                  <a class="dropdown-item" href="{% url 'salon:salon_register' %}">
+                    <i class="fas fa-store me-2"></i> Register Your Salon
                   </a>
                 </li>
                 <li>

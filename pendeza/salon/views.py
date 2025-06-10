@@ -1,21 +1,50 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from salon.models import salon_image_upload_path, Salon, SalonGallery, SalonFeatures, SalonFaq, SalonServices, ServiceCategory, SalonStatus, BookingStatus, Booking, ServiceGender, PaymentStatus, StaffOnDuty, SalonReview
+from datetime import datetime, timedelta
+import json
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
+from django.forms.models import model_to_dict
 from django.http import Http404, JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse, reverse_lazy
+from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View, ListView, CreateView, UpdateView, DeleteView, DetailView
 
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.urls import reverse_lazy, reverse
-from django.core.exceptions import PermissionDenied
+from salon.models import (
+    salon_image_upload_path,
+    Salon,
+    SalonGallery,
+    SalonFeatures,
+    SalonFaq,
+    SalonServices,
+    ServiceCategory,
+    SalonStatus,
+    BookingStatus,
+    Booking,
+    ServiceGender,
+    PaymentStatus,
+    StaffOnDuty,
+    SalonReview,
+)
+
+from salon.forms import (
+    SalonRegisterForm,
+    SalonGalleryFormSet,
+    SalonFeatureFormSet,
+    SalonFaqFormSet,
+    SalonServiceForm,
+    SalonServiceFormSet,
+    StaffFormSet,
+    SalonWorkingHoursForm,
+)
+
 from userauthentication.models import User
-from datetime import datetime, timedelta
-from django.forms.models import model_to_dict
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from .forms import SalonServiceForm
-import json
-from django.contrib.auth.decorators import login_required
+
 
 
 
@@ -876,4 +905,77 @@ class BookingCalendarView(LoginRequiredMixin, View):
         return JsonResponse(events, safe=False)
 
 
+
+
+@login_required
+def salon_register(request):
+    if request.method == 'POST':
+        salon_form = SalonRegisterForm(request.POST, request.FILES, request=request)
+        gallery_formset = SalonGalleryFormSet(request.POST, request.FILES, prefix='gallery')
+        feature_formset = SalonFeatureFormSet(request.POST, prefix='features')
+        faq_formset = SalonFaqFormSet(request.POST, prefix='faq')
+        service_formset = SalonServiceFormSet(request.POST, request.FILES, prefix='services')
+        staff_formset = StaffFormSet(request.POST, request.FILES, prefix='staff')
+        hours_form = SalonWorkingHoursForm(request.POST, prefix='hours')
         
+        if (salon_form.is_valid() and gallery_formset.is_valid() and 
+            feature_formset.is_valid() and faq_formset.is_valid() and 
+            service_formset.is_valid() and staff_formset.is_valid() and 
+            hours_form.is_valid()):
+            
+            salon = salon_form.save(commit=False)
+            if not salon.user:
+                salon.user = request.user
+            salon.save()
+            
+            # Save all formsets
+            gallery_formset.instance = salon
+            gallery_formset.save()
+            
+            feature_formset.instance = salon
+            feature_formset.save()
+            
+            faq_formset.instance = salon
+            faq_formset.save()
+            
+            service_formset.instance = salon
+            service_formset.save()
+            
+            staff_formset.instance = salon
+            staff_formset.save()
+            
+            hours = hours_form.save(commit=False)
+            hours.salon = salon
+            hours.save()
+            
+            messages.success(request, 'Your salon has been registered successfully!')
+            return redirect('salon_dashboard')  
+            
+    else:
+        salon_form = SalonRegisterForm(request=request)
+        gallery_formset = SalonGalleryFormSet(prefix='gallery')
+        feature_formset = SalonFeatureFormSet(prefix='features')
+        faq_formset = SalonFaqFormSet(prefix='faq')
+        service_formset = SalonServiceFormSet(prefix='services')
+        staff_formset = StaffFormSet(prefix='staff')
+        hours_form = SalonWorkingHoursForm(prefix='hours')
+    
+    context = {
+        'salon_form': salon_form,
+        'gallery_formset': gallery_formset,
+        'feature_formset': feature_formset,
+        'faq_formset': faq_formset,
+        'service_formset': service_formset,
+        'staff_formset': staff_formset,
+        'hours_form': hours_form,
+        'step_titles': [
+            'Basic Information',
+            'Salon Images',
+            'Features & Amenities',
+            'FAQ Section',
+            'Services Offered',
+            'Staff Members',
+            'Working Hours'
+        ],
+    }
+    return render(request, 'salon/salon_register.html', context)

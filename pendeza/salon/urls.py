@@ -7,12 +7,16 @@ from salon.views import (
     TeamListView,
     TeamDetailView,
     TeamMemberUpdateView,
-    TeamMemberDeleteView
+    TeamMemberDeleteView,
+    salon_register,
 )
 
 app_name = "salon"
 
 urlpatterns = [
+    
+    path('register/', views.salon_register, name='salon_register'),
+
     # General
     path("", views.index, name="index"),
     path('<slug:slug>/', salon_detail, name='detail'),
@@ -26,6 +30,8 @@ urlpatterns = [
     # Salon management
     path('salon/<int:pk>/delete/', views.SalonDeleteView.as_view(), name='salon_delete'),
     path('salon/<int:pk>/update/', views.SalonUpdateView.as_view(), name='salon_update'),
+
+    
 
     # Bookings
     path('bookings/', views.BookingListView.as_view(), name='booking_list'),

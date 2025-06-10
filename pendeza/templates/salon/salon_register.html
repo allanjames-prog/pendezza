@@ -1,0 +1,543 @@
+<!-- templates/salon/salon_register.html -->
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/salon_register.css' %}">
+{% endblock %}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="text-center font-weight-light my-4">Register Your Salon</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="salonRegisterForm">
+                        {% csrf_token %}
+                        
+                        <!-- Progress Bar -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                {% for step in step_titles %}
+                                <span class="step-indicator {% if forloop.first %}active{% endif %}" data-step="{{ forloop.counter0 }}">
+                                    {{ step }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: 14.28%" aria-valuenow="1" aria-valuemin="0" aria-valuemax="7"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 1: Basic Information -->
+                        <div class="form-step active-step" data-step="0">
+                            <h4 class="mb-4">Basic Salon Information</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ salon_form.name.id_for_label }}">Salon Name*</label>
+                                        {{ salon_form.name }}
+                                        <small class="form-text text-muted">Your business name as you want it displayed</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ salon_form.mobile.id_for_label }}">Contact Number*</label>
+                                        {{ salon_form.mobile }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="{{ salon_form.description.id_for_label }}">Description*</label>
+                                {{ salon_form.description }}
+                                <small class="form-text text-muted">Tell customers about your salon (min. 50 characters)</small>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ salon_form.address.id_for_label }}">Address*</label>
+                                        {{ salon_form.address }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ salon_form.email.id_for_label }}">Email*</label>
+                                        {{ salon_form.email }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="{{ salon_form.image.id_for_label }}">Main Salon Image*</label>
+                                {{ salon_form.image }}
+                                <small class="form-text text-muted">This will be your main display image (recommended size: 800x600px)</small>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" class="btn btn-secondary" disabled>Previous</button>
+                                <button type="button" class="btn btn-primary next-step">Next: Salon Images</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 2: Salon Images -->
+                        <div class="form-step" data-step="1">
+                            <h4 class="mb-4">Salon Gallery Images</h4>
+                            <p class="text-muted mb-4">Upload multiple images to showcase your salon (5-10 recommended)</p>
+                            
+                            {{ gallery_formset.management_form }}
+                            <div id="gallery-forms">
+                                {% for form in gallery_formset %}
+                                <div class="gallery-form-item card mb-3">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Image {{ forloop.counter }}</label>
+                                                    {{ form.image }}
+                                                    {% if form.instance.image %}
+                                                    <div class="mt-2">
+                                                        <img src="{{ form.instance.image.url }}" class="img-thumbnail" width="100">
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Caption (Optional)</label>
+                                                    {{ form.caption }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {{ form.id }}
+                                        {% if gallery_formset.can_delete %}
+                                        <div class="form-check">
+                                            {{ form.DELETE }}
+                                            <label class="form-check-label" for="{{ form.DELETE.id_for_label }}">Remove this image</label>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" class="btn btn-secondary prev-step">Previous</button>
+                                <button type="button" class="btn btn-primary next-step">Next: Features & Amenities</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 3: Features & Amenities -->
+                        <div class="form-step" data-step="2">
+                            <h4 class="mb-4">Salon Features & Amenities</h4>
+                            <p class="text-muted mb-4">Highlight what makes your salon special</p>
+                            
+                            {{ feature_formset.management_form }}
+                            <div id="feature-forms">
+                                {% for form in feature_formset %}
+                                <div class="feature-form-item card mb-3">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Feature Title</label>
+                                                    {{ form.title }}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Icon Type</label>
+                                                    {{ form.icon_type }}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Icon (Optional)</label>
+                                                    {{ form.icon }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Description</label>
+                                            {{ form.description }}
+                                        </div>
+                                        <div class="form-check">
+                                            {{ form.is_active }}
+                                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Active</label>
+                                        </div>
+                                        {{ form.id }}
+                                        {% if feature_formset.can_delete %}
+                                        <div class="form-check">
+                                            {{ form.DELETE }}
+                                            <label class="form-check-label" for="{{ form.DELETE.id_for_label }}">Remove this feature</label>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" class="btn btn-secondary prev-step">Previous</button>
+                                <button type="button" class="btn btn-primary next-step">Next: FAQ Section</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 4: FAQ Section -->
+                        <div class="form-step" data-step="3">
+                            <h4 class="mb-4">Frequently Asked Questions</h4>
+                            <p class="text-muted mb-4">Add common questions and answers for your customers</p>
+                            
+                            {{ faq_formset.management_form }}
+                            <div id="faq-forms">
+                                {% for form in faq_formset %}
+                                <div class="faq-form-item card mb-3">
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <label>Question</label>
+                                            {{ form.question }}
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Answer</label>
+                                            {{ form.answer }}
+                                        </div>
+                                        <div class="form-check">
+                                            {{ form.is_active }}
+                                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Active</label>
+                                        </div>
+                                        {{ form.id }}
+                                        {% if faq_formset.can_delete %}
+                                        <div class="form-check">
+                                            {{ form.DELETE }}
+                                            <label class="form-check-label" for="{{ form.DELETE.id_for_label }}">Remove this FAQ</label>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" class="btn btn-secondary prev-step">Previous</button>
+                                <button type="button" class="btn btn-primary next-step">Next: Services Offered</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 5: Services Offered -->
+                        <div class="form-step" data-step="4">
+                            <h4 class="mb-4">Services Offered</h4>
+                            <p class="text-muted mb-4">List all services your salon provides</p>
+                            
+                            {{ service_formset.management_form }}
+                            <div id="service-forms">
+                                {% for form in service_formset %}
+                                <div class="service-form-item card mb-4">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Service Name*</label>
+                                                    {{ form.name }}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label>Category*</label>
+                                                    {{ form.category }}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label>Gender*</label>
+                                                    {{ form.gender }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label>Description</label>
+                                            {{ form.description }}
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label>Duration (minutes)*</label>
+                                                    {{ form.duration }}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label>Base Price ($)*</label>
+                                                    {{ form.base_price }}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label>Women Price ($)</label>
+                                                    {{ form.women_price }}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label>Men Price ($)</label>
+                                                    {{ form.men_price }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label>Service Image (Optional)</label>
+                                            {{ form.image }}
+                                            {% if form.instance.image %}
+                                            <div class="mt-2">
+                                                <img src="{{ form.instance.image.url }}" class="img-thumbnail" width="100">
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="form-check">
+                                            {{ form.is_active }}
+                                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Active</label>
+                                        </div>
+                                        
+                                        {{ form.id }}
+                                        {% if service_formset.can_delete %}
+                                        <div class="form-check">
+                                            {{ form.DELETE }}
+                                            <label class="form-check-label" for="{{ form.DELETE.id_for_label }}">Remove this service</label>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" class="btn btn-secondary prev-step">Previous</button>
+                                <button type="button" class="btn btn-primary next-step">Next: Staff Members</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 6: Staff Members -->
+                        <div class="form-step" data-step="5">
+                            <h4 class="mb-4">Staff Members</h4>
+                            <p class="text-muted mb-4">Add your team members who will be serving customers</p>
+                            
+                            {{ staff_formset.management_form }}
+                            <div id="staff-forms">
+                                {% for form in staff_formset %}
+                                <div class="staff-form-item card mb-4">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Staff Member*</label>
+                                                    {{ form.user }}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Role*</label>
+                                                    {{ form.role }}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Status*</label>
+                                                    {{ form.status }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label>Profile Picture (Optional)</label>
+                                            {{ form.profile_pic }}
+                                            {% if form.instance.profile_pic %}
+                                            <div class="mt-2">
+                                                <img src="{{ form.instance.profile_pic.url }}" class="img-thumbnail" width="100">
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label>Bio (Optional)</label>
+                                            {{ form.bio }}
+                                        </div>
+                                        
+                                        {{ form.id }}
+                                        {% if staff_formset.can_delete %}
+                                        <div class="form-check">
+                                            {{ form.DELETE }}
+                                            <label class="form-check-label" for="{{ form.DELETE.id_for_label }}">Remove this staff member</label>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" class="btn btn-secondary prev-step">Previous</button>
+                                <button type="button" class="btn btn-primary next-step">Next: Working Hours</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 7: Working Hours -->
+                        <div class="form-step" data-step="6">
+                            <h4 class="mb-4">Working Hours</h4>
+                            <p class="text-muted mb-4">Set your salon's operating hours</p>
+                            
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label>Monday - Friday</label>
+                                        {{ hours_form.monday_friday }}
+                                        <small class="form-text text-muted">Example: 9:00 AM - 7:00 PM</small>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label>Saturday</label>
+                                        {{ hours_form.saturday }}
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label>Sunday</label>
+                                        {{ hours_form.sunday }}
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label>Holidays</label>
+                                        {{ hours_form.holidays }}
+                                        <small class="form-text text-muted">Special hours for holidays</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" class="btn btn-secondary prev-step">Previous</button>
+                                <button type="submit" class="btn btn-success">Complete Registration</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('salonRegisterForm');
+    const steps = document.querySelectorAll('.form-step');
+    const stepIndicators = document.querySelectorAll('.step-indicator');
+    const nextButtons = document.querySelectorAll('.next-step');
+    const prevButtons = document.querySelectorAll('.prev-step');
+    const progressBar = document.querySelector('.progress-bar');
+    
+    let currentStep = 0;
+    
+    function showStep(stepIndex) {
+        steps.forEach((step, index) => {
+            if (index === stepIndex) {
+                step.classList.add('active-step');
+            } else {
+                step.classList.remove('active-step');
+            }
+        });
+        
+        stepIndicators.forEach((indicator, index) => {
+            if (index <= stepIndex) {
+                indicator.classList.add('active');
+            } else {
+                indicator.classList.remove('active');
+            }
+        });
+        
+        // Update progress bar
+        const progress = ((stepIndex + 1) / steps.length) * 100;
+        progressBar.style.width = `${progress}%`;
+        progressBar.setAttribute('aria-valuenow', stepIndex + 1);
+        
+        currentStep = stepIndex;
+    }
+    
+    nextButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Validate current step before proceeding
+            let isValid = true;
+            const currentStepFields = steps[currentStep].querySelectorAll('input, textarea, select');
+            
+            currentStepFields.forEach(field => {
+                if (field.required && !field.value) {
+                    field.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            if (isValid) {
+                showStep(currentStep + 1);
+            } else {
+                alert('Please fill in all required fields before proceeding.');
+            }
+        });
+    });
+    
+    prevButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            showStep(currentStep - 1);
+        });
+    });
+    
+    // Initialize the form
+    showStep(0);
+    
+    // Add dynamic form functionality for formsets
+    function addFormsetListeners(prefix) {
+        const addButton = document.getElementById(`add-${prefix}-form`);
+        if (addButton) {
+            addButton.addEventListener('click', function() {
+                const totalForms = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
+                const formNum = parseInt(totalForms.value);
+                const formContainer = document.getElementById(`${prefix}-forms`);
+                
+                // Clone the first form (template)
+                const newForm = formContainer.querySelector(`.${prefix}-form-item`).cloneNode(true);
+                
+                // Update all the IDs and names in the new form
+                const regex = new RegExp(`(${prefix}-\\d+-)`, 'g');
+                newForm.innerHTML = newForm.innerHTML.replace(regex, `${prefix}-${formNum}-`);
+                
+                // Clear the values
+                newForm.querySelectorAll('input, textarea, select').forEach(field => {
+                    if (field.type !== 'checkbox' && field.type !== 'hidden') {
+                        field.value = '';
+                    } else if (field.type === 'checkbox') {
+                        field.checked = false;
+                    }
+                });
+                
+                // Add the new form to the container
+                formContainer.appendChild(newForm);
+                
+                // Increment the total forms count
+                totalForms.value = formNum + 1;
+            });
+        }
+    }
+    
+    // Initialize all formsets
+    ['gallery', 'feature', 'faq', 'service', 'staff'].forEach(prefix => {
+        addFormsetListeners(prefix);
+    });
+});
+</script>
+{% endblock %}
