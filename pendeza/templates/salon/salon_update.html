@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">Update Salon</h1>
+    
+    <form method="post" enctype="multipart/form-data" id="salonForm">
+        {% csrf_token %}
+        
+        <!-- Multi-step form indicator -->
+        <div class="steps mb-5">
+            {% for step in step_titles %}
+            <div class="step{% if forloop.first %} active{% endif %}">
+                <span>{{ forloop.counter }}</span>
+                <p>{{ step }}</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Step 1: Basic Information -->
+        <div class="step-content active" data-step="1">
+            <h3>Basic Information</h3>
+            {{ salon_form.as_p }}
+            <button type="button" class="btn btn-primary next-step">Continue</button>
+        </div>
+
+        <!-- Step 2: Salon Images -->
+        <div class="step-content" data-step="2">
+            <h3>Salon Images</h3>
+            {{ gallery_formset.management_form }}
+            {% for form in gallery_formset %}
+                {{ form.as_p }}
+                {% if form.instance.image %}
+                <img src="{{ form.instance.image.url }}" height="100" class="mb-2">
+                {% endif %}
+            {% endfor %}
+            <button type="button" class="btn btn-secondary prev-step">Back</button>
+            <button type="button" class="btn btn-primary next-step">Continue</button>
+        </div>
+
+        <!-- Other steps would be similar to salon_create.html -->
+        <!-- ... -->
+
+        <!-- Final Step -->
+        <div class="step-content" data-step="7">
+            <h3>Working Hours</h3>
+            {{ hours_form.as_p }}
+            <button type="button" class="btn btn-secondary prev-step">Back</button>
+            <button type="submit" class="btn btn-success">Update Salon</button>
+        </div>
+    </form>
+</div>
+
+<script src="{% static 'js/salon_form_steps.js' %}"></script>
+{% endblock %}

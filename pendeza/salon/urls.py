@@ -8,14 +8,21 @@ from salon.views import (
     TeamDetailView,
     TeamMemberUpdateView,
     TeamMemberDeleteView,
-    salon_register,
+    SalonDetailView, 
+    SalonCreateView, 
+    SalonUpdateView, 
+    SalonDeleteView
+    
 )
 
 app_name = "salon"
 
 urlpatterns = [
     
-    path('register/', views.salon_register, name='salon_register'),
+    path('create/', SalonCreateView.as_view(), name='salon_create'),
+    path('<slug:slug>/', SalonDetailView.as_view(), name='salon_detail'),
+    path('<int:pk>/update/', SalonUpdateView.as_view(), name='salon_update'),
+    path('<int:pk>/delete/', SalonDeleteView.as_view(), name='salon_delete'),
 
     # General
     path("", views.index, name="index"),
@@ -31,7 +38,13 @@ urlpatterns = [
     path('salon/<int:pk>/delete/', views.SalonDeleteView.as_view(), name='salon_delete'),
     path('salon/<int:pk>/update/', views.SalonUpdateView.as_view(), name='salon_update'),
 
-    
+    # Owner URLs
+    path('owner/dashboard/', views.owner_dashboard, name='owner_dashboard'),
+    path('owner/bookings/', views.OwnerBookingListView.as_view(), name='owner_booking_list'),
+    path('owner/services/', views.OwnerServiceListView.as_view(), name='owner_services_list'),
+    path('owner/services/<int:pk>/edit/', views.OwnerServiceUpdateView.as_view(), name='owner_service_update'),
+    path('owner/staff/', views.OwnerStaffListView.as_view(), name='owner_staff_list'),
+    path('owner/staff/add/', views.OwnerStaffCreateView.as_view(), name='owner_staff_create'),    
 
     # Bookings
     path('bookings/', views.BookingListView.as_view(), name='booking_list'),
