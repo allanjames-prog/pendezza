@@ -289,3 +289,17 @@ label:after {
 label.required:after {
     display: inline;
 }
+
+/* Add these styles */
+.is-invalid {
+    border-color: #dc3545 !important;
+}
+
+.invalid-feedback {
+    color: #dc3545;
+    font-size: 0.875em;
+}
+
+.alert-danger {
+    margin-bottom: 20px;
+}

@@ -125,7 +125,7 @@ class SalonCreateView(LoginRequiredMixin, View):
                 'Working Hours'
             ],
         }
-        return render(request, 'salon/salon_register.html', context)
+        return render(request, 'salon/salon_create.html', context)
     
     def post(self, request):
         salon_form = SalonRegisterForm(request.POST, request.FILES, request=request)
@@ -135,44 +135,54 @@ class SalonCreateView(LoginRequiredMixin, View):
         service_formset = SalonServiceFormSet(request.POST, request.FILES, prefix='services')
         staff_formset = StaffFormSet(request.POST, request.FILES, prefix='staff')
         hours_form = SalonWorkingHoursForm(request.POST, prefix='hours')
-        
-        if all([
-            salon_form.is_valid(),
-            gallery_formset.is_valid(),
-            feature_formset.is_valid(),
-            faq_formset.is_valid(),
-            service_formset.is_valid(),
-            staff_formset.is_valid(),
-            hours_form.is_valid()
-        ]):
-            salon = salon_form.save(commit=False)
-            salon.user = request.user
-            salon.save()
-            
-            # Save all formsets
-            gallery_formset.instance = salon
-            gallery_formset.save()
-            
-            feature_formset.instance = salon
-            feature_formset.save()
-            
-            faq_formset.instance = salon
-            faq_formset.save()
-            
-            service_formset.instance = salon
-            service_formset.save()
-            
-            staff_formset.instance = salon
-            staff_formset.save()
-            
-            hours = hours_form.save(commit=False)
-            hours.salon = salon
-            hours.save()
-            
-            messages.success(request, 'Your salon has been registered successfully!')
-            return redirect('salon_dashboard')
-        
-        # If forms are not valid, render the page with errors
+
+        # Validate main form first
+        if salon_form.is_valid():
+            try:
+                # Save main salon
+                salon = salon_form.save(commit=False)
+                salon.user = request.user
+                salon.status = SalonStatus.LIVE  # Or your preferred default status
+                salon.save()
+                
+                # Process formsets only after salon has an ID
+                if gallery_formset.is_valid():
+                    gallery_formset.instance = salon
+                    gallery_formset.save()
+                
+                if feature_formset.is_valid():
+                    feature_formset.instance = salon
+                    feature_formset.save()
+                
+                if faq_formset.is_valid():
+                    faq_formset.instance = salon
+                    faq_formset.save()
+                
+                if service_formset.is_valid():
+                    service_formset.instance = salon
+                    service_formset.save()
+                
+                if staff_formset.is_valid():
+                    staff_formset.instance = salon
+                    staff_formset.save()
+                
+                if hours_form.is_valid():
+                    working_hours = hours_form.save(commit=False)
+                    working_hours.salon = salon
+                    working_hours.save()
+                
+                messages.success(request, 'Salon created successfully!')
+                return redirect('owner_dashboard')
+                
+            except Exception as e:
+                # Rollback if any error occurs
+                if 'salon' in locals():
+                    salon.delete()
+                messages.error(request, f'Error saving salon: {str(e)}')
+        else:
+            messages.error(request, 'Please correct the errors below')
+            print("Form errors:", salon_form.errors)  # Debug output
+
         context = {
             'salon_form': salon_form,
             'gallery_formset': gallery_formset,
@@ -191,7 +201,7 @@ class SalonCreateView(LoginRequiredMixin, View):
                 'Working Hours'
             ],
         }
-        return render(request, 'salon/salon_register.html', context)
+        return render(request, 'salon/salon_create.html', context)
 
 # ========== SALON UPDATE VIEW ==========
 class SalonUpdateView(LoginRequiredMixin, View):

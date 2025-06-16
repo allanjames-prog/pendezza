@@ -1,0 +1,6 @@
+ipython==8.12.3
+jedi==0.19.2
+matplotlib-inline==0.1.7
+pytest==8.2.1
+pytest-django==4.8.0
+django-debug-toolbar==4.3.0

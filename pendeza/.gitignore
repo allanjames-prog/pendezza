@@ -1,13 +1,22 @@
+# Python bytecode
 *.pyc
-
-/media/
-.env
-
-/venv/
-/myvenv/
-*.pyc
-__pycache__/
 *.pyo
 *.pyd
+__pycache__/
+
+# Virtual environments
+/venv/
+/myvenv/
+/cleanenv/
+
+# Environment variables
+.env
+
+# Media files
+/media/
+
+# SQLite DB
 db.sqlite3
+
+# Node modules
 node_modules/

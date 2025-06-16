@@ -51,7 +51,7 @@ SalonServiceFormSet = inlineformset_factory(
 class SalonRegisterForm(forms.ModelForm):
     class Meta:
         model = Salon
-        fields = ['name', 'user', 'description', 'image', 'address', 'mobile', 'email']
+        fields = ['name', 'description', 'image', 'address', 'mobile', 'email']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
         }
@@ -59,9 +59,13 @@ class SalonRegisterForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
-        if self.request and self.request.user.is_authenticated:
-            self.fields['user'].initial = self.request.user
-            self.fields['user'].widget = forms.HiddenInput()
+        
+        # Make image field optional if needed
+        self.fields['image'].required = False
+        
+        # Add HTML5 attributes for better UX
+        self.fields['mobile'].widget.attrs.update({'pattern': '^\+?1?\d{9,15}$'})
+        self.fields['email'].widget.attrs.update({'type': 'email'})
 
 # Add these to your forms.py after SalonRegisterForm
 

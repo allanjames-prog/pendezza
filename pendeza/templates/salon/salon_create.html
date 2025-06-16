@@ -17,6 +17,28 @@
                 <div class="card-body">
                     <form method="post" enctype="multipart/form-data" id="salonRegisterForm">
                         {% csrf_token %}
+
+                        {% if salon_form.errors or gallery_formset.errors or feature_formset.errors or faq_formset.errors or service_formset.errors or staff_formset.errors or hours_form.errors %}
+                        <div class="alert alert-danger">
+                            <strong>Error!</strong> Please correct the following:
+                            <ul>
+                                {% if salon_form.errors %}
+                                    {% for field, errors in salon_form.errors.items %}
+                                        <li>{{ field|title }}: {{ errors|join:", " }}</li>
+                                    {% endfor %}
+                                {% endif %}
+                                {% for form in gallery_formset %}
+                                    {% if form.errors %}
+                                        <li>Image {{ forloop.counter }}: 
+                                            {% for field, errors in form.errors.items %}
+                                                {{ field|title }} errors
+                                            {% endfor %}
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
                         
                         <!-- Progress Bar -->
                         <div class="mb-4">
@@ -40,6 +62,13 @@
                                     <div class="form-group">
                                         <label for="{{ salon_form.name.id_for_label }}">Salon Name*</label>
                                         {{ salon_form.name }}
+
+                                        {% if salon_form.name.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ salon_form.name.errors|join:", " }}
+                                            </div>
+                                        {% endif %}
+
                                         <small class="form-text text-muted">Your business name as you want it displayed</small>
                                     </div>
                                 </div>
@@ -83,6 +112,8 @@
                                 <button type="button" class="btn btn-primary next-step">Next: Salon Images</button>
                             </div>
                         </div>
+
+                        
                         
                         <!-- Step 2: Salon Images -->
                         <div class="form-step" data-step="1">
@@ -145,7 +176,7 @@
                                             <div class="col-md-4">
                                                 <div class="form-group">
                                                     <label>Feature Title</label>
-                                                    {{ form.title }}
+                                                    {{ form.name }}
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
@@ -160,10 +191,6 @@
                                                     {{ form.icon }}
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Description</label>
-                                            {{ form.description }}
                                         </div>
                                         <div class="form-check">
                                             {{ form.is_active }}
@@ -445,37 +472,26 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function showStep(stepIndex) {
         steps.forEach((step, index) => {
-            if (index === stepIndex) {
-                step.classList.add('active-step');
-            } else {
-                step.classList.remove('active-step');
-            }
+            step.style.display = (index === stepIndex) ? 'block' : 'none';
         });
         
         stepIndicators.forEach((indicator, index) => {
-            if (index <= stepIndex) {
-                indicator.classList.add('active');
-            } else {
-                indicator.classList.remove('active');
-            }
+            indicator.classList.toggle('active', index <= stepIndex);
         });
         
-        // Update progress bar
         const progress = ((stepIndex + 1) / steps.length) * 100;
         progressBar.style.width = `${progress}%`;
-        progressBar.setAttribute('aria-valuenow', stepIndex + 1);
-        
         currentStep = stepIndex;
     }
-    
+
+    // Lightweight validation - just visual, Django will do real validation
     nextButtons.forEach(button => {
         button.addEventListener('click', function() {
-            // Validate current step before proceeding
             let isValid = true;
-            const currentStepFields = steps[currentStep].querySelectorAll('input, textarea, select');
+            const currentFields = steps[currentStep].querySelectorAll('[required]');
             
-            currentStepFields.forEach(field => {
-                if (field.required && !field.value) {
+            currentFields.forEach(field => {
+                if (!field.value.trim()) {
                     field.classList.add('is-invalid');
                     isValid = false;
                 } else {
@@ -483,61 +499,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            if (isValid) {
-                showStep(currentStep + 1);
-            } else {
-                alert('Please fill in all required fields before proceeding.');
+            if (isValid) showStep(currentStep + 1);
+        });
+    });
+
+    prevButtons.forEach(button => {
+        button.addEventListener('click', () => showStep(currentStep - 1));
+    });
+
+    // Final form submission handler
+    form.addEventListener('submit', function(e) {
+        let isFormValid = true;
+        
+        // Highlight all invalid fields
+        form.querySelectorAll('[required]').forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isFormValid = false;
+                
+                // Jump to first error if we're not on that step
+                const errorStep = field.closest('.form-step');
+                if (errorStep && parseInt(errorStep.dataset.step) !== currentStep) {
+                    showStep(parseInt(errorStep.dataset.step));
+                }
             }
         });
-    });
-    
-    prevButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            showStep(currentStep - 1);
-        });
-    });
-    
-    // Initialize the form
-    showStep(0);
-    
-    // Add dynamic form functionality for formsets
-    function addFormsetListeners(prefix) {
-        const addButton = document.getElementById(`add-${prefix}-form`);
-        if (addButton) {
-            addButton.addEventListener('click', function() {
-                const totalForms = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
-                const formNum = parseInt(totalForms.value);
-                const formContainer = document.getElementById(`${prefix}-forms`);
-                
-                // Clone the first form (template)
-                const newForm = formContainer.querySelector(`.${prefix}-form-item`).cloneNode(true);
-                
-                // Update all the IDs and names in the new form
-                const regex = new RegExp(`(${prefix}-\\d+-)`, 'g');
-                newForm.innerHTML = newForm.innerHTML.replace(regex, `${prefix}-${formNum}-`);
-                
-                // Clear the values
-                newForm.querySelectorAll('input, textarea, select').forEach(field => {
-                    if (field.type !== 'checkbox' && field.type !== 'hidden') {
-                        field.value = '';
-                    } else if (field.type === 'checkbox') {
-                        field.checked = false;
-                    }
-                });
-                
-                // Add the new form to the container
-                formContainer.appendChild(newForm);
-                
-                // Increment the total forms count
-                totalForms.value = formNum + 1;
-            });
+        
+        if (!isFormValid) {
+            e.preventDefault();
+            alert('Please complete all required fields marked in red.');
         }
-    }
-    
-    // Initialize all formsets
-    ['gallery', 'feature', 'faq', 'service', 'staff'].forEach(prefix => {
-        addFormsetListeners(prefix);
     });
+
+    // Initialize
+    showStep(0);
 });
 </script>
 {% endblock %}

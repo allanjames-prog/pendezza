@@ -60,11 +60,9 @@ urlpatterns = [
     path('staff/availability/', views.StaffAvailabilityView.as_view(), name='staff_availability'),
 
     # Reviews
-    path('add-review/', views.add_review, name='add_review'),
     path('<slug:slug>/add-review/', views.add_review, name='salon_review_create'),
-    path('salon/<uuid:pk>/add-review/', views.add_review, name='add_review'),
-    path('<slug:slug>/add-review/', views.add_review, name='add_review'),
     path('<slug:slug>/reviews/', views.SalonReviewsView.as_view(), name='all_reviews'),
+
 
     # Services
     path('salon/<slug:slug>/services/', SalonServiceAPIView.as_view(), name='salon-services'),
