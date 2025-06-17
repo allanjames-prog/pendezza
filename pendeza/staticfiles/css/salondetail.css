@@ -1,0 +1,609 @@
+/* Salon Detail Page Styles */
+.salon-hero {
+    position: relative;
+    height: 60vh;
+    min-height: 500px;
+    overflow: hidden;
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+    display: flex;
+    align-items: center;
+    color: white;
+    margin-bottom: 50px;
+}
+
+.salon-hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
+}
+
+.salon-header-content {
+    position: relative;
+    z-index: 2;
+}
+
+.salon-badge {
+    font-weight: 500;
+    padding: 6px 12px;
+    font-size: 14px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-bottom: 15px;
+}
+
+.badge-live {
+    background-color: #28a745;
+    color: white;
+}
+
+.badge-draft {
+    background-color: #6c757d;
+    color: white;
+}
+
+.badge-in_review {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.badge-disabled {
+    background-color: #dc3545;
+    color: white;
+}
+
+.badge-rejected {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-featured {
+    background-color: #dc3545;
+    color: white;
+}
+
+.salon-rating {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 5px 15px;
+    border-radius: 50px;
+    margin-left: 15px;
+}
+
+.salon-rating .stars {
+    color: #ffc107;
+    margin-right: 5px;
+}
+
+.salon-actions {
+    margin-top: 30px;
+}
+
+.btn-booking {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    padding: 12px 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-booking:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3);
+    background-color: #c99f0d;
+    border-color: #c99f0d;
+}
+
+/* Salon Info Section */
+.salon-info-section {
+    padding: 60px 0;
+}
+
+.info-card {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.info-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.info-card-header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 15px 20px;
+    font-weight: 600;
+}
+
+.info-card-body {
+    padding: 20px;
+}
+
+.info-item {
+    display: flex;
+    margin-bottom: 15px;
+}
+
+.info-item:last-child {
+    margin-bottom: 0;
+}
+
+.info-icon {
+    width: 40px;
+    height: 40px;
+    background-color: rgba(200, 162, 200, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    flex-shrink: 0;
+    color: var(--primary-color);
+}
+
+/* Gallery Section */
+.gallery-section {
+    padding: 60px 0;
+    background-color: #f9f9f9;
+}
+
+.gallery-item {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.gallery-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.gallery-item:hover img {
+    transform: scale(1.05);
+}
+
+.gallery-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+    padding: 15px;
+    color: white;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.gallery-item:hover .gallery-overlay {
+    opacity: 1;
+}
+
+/* Services Section */
+.services-section {
+    padding: 60px 0;
+}
+
+.service-card {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+    border: 1px solid #eee;
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-color);
+}
+
+.service-card-header {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.service-card-body {
+    padding: 20px;
+}
+
+.service-price {
+    font-weight: 700;
+    color: var(--accent-color);
+    font-size: 1.2rem;
+}
+
+.service-duration {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Team Section */
+.team-section {
+    padding: 60px 0;
+    background-color: #f9f9f9;
+}
+
+.team-card {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+    background: white;
+    text-align: center;
+}
+
+.team-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.team-img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+}
+
+.team-info {
+    padding: 20px;
+}
+
+.team-social {
+    margin-top: 15px;
+}
+
+.team-social a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 35px;
+    height: 35px;
+    background-color: rgba(200, 162, 200, 0.1);
+    border-radius: 50%;
+    margin: 0 5px;
+    color: var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.team-social a:hover {
+    background-color: var(--primary-color);
+    color: white;
+    transform: translateY(-3px);
+}
+
+/* Reviews Section */
+.reviews-section {
+    padding: 60px 0;
+}
+
+.review-card {
+    border-radius: 8px;
+    padding: 25px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.review-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.review-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.review-user {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 15px;
+}
+
+.review-stars {
+    color: #ffc107;
+    margin-bottom: 5px;
+}
+
+.review-date {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Booking Section */
+.booking-section {
+    padding: 60px 0;
+    background: linear-gradient(135deg,
+            rgba(200, 162, 200, 0.1),
+            rgba(212, 175, 55, 0.05));
+}
+
+.booking-card {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    background: white;
+}
+
+.booking-card-header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+.booking-card-body {
+    padding: 30px;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(200, 162, 200, 0.25);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .salon-hero {
+        height: auto;
+        padding: 100px 0;
+    }
+
+    .salon-rating {
+        display: block;
+        margin-left: 0;
+        margin-top: 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    .salon-header-content {
+        text-align: center;
+    }
+
+    .salon-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .btn-booking {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+
+/* Loading Spinner */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Service Card Hover Effect */
+.service-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Featured Badge */
+.featured-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #ffc107;
+    color: #000;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    z-index: 1;
+}
+
+/* Star Rating */
+.star-rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+
+.star-rating input {
+    display: none;
+}
+
+.star-rating label {
+    color: #ddd;
+    font-size: 1.5rem;
+    padding: 0 0.2rem;
+    cursor: pointer;
+}
+
+.star-rating input:checked~label,
+.star-rating input:hover~label {
+    color: #ffc107;
+}
+
+.star-rating label:hover,
+.star-rating label:hover~label {
+    color: #ffc107;
+}
+
+/* Review Cards */
+.review-card {
+    background: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    height: 100%;
+}
+
+.review-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.review-user {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 1rem;
+}
+
+.review-date {
+    color: #6c757d;
+    font-size: 0.8rem;
+}
+
+
+/* ============================ */
+/* TEAM SECTION */
+/* ============================ */
+.team-card {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    background: white;
+}
+
+.team-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.team-img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    border-bottom: 1px solid #eee;
+}
+
+.team-img-placeholder {
+    width: 100%;
+    height: 250px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.team-info {
+    padding: 20px;
+    text-align: center;
+}
+
+.team-social {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.team-social a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    color: #495057;
+    transition: all 0.3s;
+    text-decoration: none;
+}
+
+.team-social a:hover {
+    background: var(--bs-primary);
+    color: white;
+    transform: scale(1.1);
+}
+
+.specializations {
+    min-height: 40px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+}
+
+.availability-badge .badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    font-weight: 500;
+}
+
+
+
+/* =========================== */
+/* SALONE REVEIWS */
+/* =========================== */
+  .review-fade-container {
+    position: relative;
+    min-height: 300px;
+  }
+  .review-fade-item {
+    position: absolute;
+    width: 100%;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+    top: 0;
+    left: 0;
+  }
+  .review-fade-item.active {
+    opacity: 1;
+    position: relative;
+  }
+
+  /* Star Rating Styles */
+  .star-rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    font-size: 2em;
+    gap: 10px;
+  }
+  .star-rating input {
+    display: none;
+  }
+  .star-rating label {
+    color: #ccc;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .star-rating input:checked ~ label,
+  .star-rating label:hover,
+  .star-rating label:hover ~ label {
+    color: #f90;
+  }
+  .star-rating input:checked + label {
+    color: #f90;
+  }
+  

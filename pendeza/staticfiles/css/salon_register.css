@@ -1,0 +1,305 @@
+/* salon_register.css */
+
+/* Base styles */
+.container {
+    max-width: 1200px;
+}
+
+.card {
+    border: none;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 1.5rem;
+    border-bottom: none;
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+/* Progress bar styles */
+.progress {
+    height: 8px;
+    border-radius: 4px;
+    margin-bottom: 2rem;
+}
+
+.progress-bar {
+    background-color: #4e73df;
+    transition: width 0.3s ease;
+}
+
+.step-indicator {
+    position: relative;
+    padding-bottom: 10px;
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.step-indicator.active {
+    color: #4e73df;
+    font-weight: 600;
+}
+
+.step-indicator:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background-color: #e9ecef;
+    z-index: -1;
+}
+
+.step-indicator.active:not(:last-child)::after {
+    background-color: #4e73df;
+}
+
+/* Form step styles */
+.form-step {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.form-step.active-step {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Form styles */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-control, .form-select {
+    padding: 0.75rem 1rem;
+    border-radius: 0.35rem;
+    border: 1px solid #d1d3e2;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #bac8f3;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+.form-text {
+    font-size: 0.8rem;
+}
+
+/* Formset item styles */
+.gallery-form-item,
+.feature-form-item,
+.faq-form-item,
+.service-form-item,
+.staff-form-item {
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+    transition: all 0.3s ease;
+}
+
+.gallery-form-item:hover,
+.feature-form-item:hover,
+.faq-form-item:hover,
+.service-form-item:hover,
+.staff-form-item:hover {
+    border-color: #bac8f3;
+    box-shadow: 0 0.15rem 0.5rem rgba(0, 0, 0, 0.05);
+}
+
+/* Image preview styles */
+.img-thumbnail {
+    max-height: 100px;
+    object-fit: cover;
+    border-radius: 0.25rem;
+}
+
+/* Button styles */
+.btn {
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.35rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background-color: #4e73df;
+    border-color: #4e73df;
+}
+
+.btn-primary:hover {
+    background-color: #3a5ccc;
+    border-color: #3754bf;
+}
+
+.btn-secondary {
+    background-color: #858796;
+    border-color: #858796;
+}
+
+.btn-secondary:hover {
+    background-color: #717384;
+    border-color: #6b6d7d;
+}
+
+.btn-success {
+    background-color: #1cc88a;
+    border-color: #1cc88a;
+}
+
+.btn-success:hover {
+    background-color: #17a673;
+    border-color: #169b6b;
+}
+
+/* Navigation buttons */
+.d-flex.justify-content-between {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e3e6f0;
+}
+
+/* Form validation */
+.is-invalid {
+    border-color: #e74a3b !important;
+}
+
+.is-invalid:focus {
+    box-shadow: 0 0 0 0.2rem rgba(231, 74, 59, 0.25);
+}
+
+.invalid-feedback {
+    display: none;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 80%;
+    color: #e74a3b;
+}
+
+.is-invalid ~ .invalid-feedback {
+    display: block;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .step-indicator {
+        font-size: 0.8rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .card-header h3 {
+        font-size: 1.5rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .step-indicator {
+        font-size: 0.7rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Custom formset add button */
+.add-form-btn {
+    margin-bottom: 1.5rem;
+    background-color: #f8f9fc;
+    border: 1px dashed #d1d3e2;
+    color: #4e73df;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.add-form-btn:hover {
+    background-color: #f0f3ff;
+    border-color: #bac8f3;
+}
+
+.add-form-btn i {
+    margin-right: 8px;
+}
+
+/* Formset delete checkbox */
+.form-check {
+    margin-top: 1rem;
+}
+
+.form-check-input {
+    margin-top: 0.2rem;
+}
+
+/* Working hours card */
+.working-hours-card {
+    background-color: #f8f9fc;
+    border: 1px solid #e3e6f0;
+}
+
+/* Text muted for helper text */
+.text-muted {
+    color: #858796 !important;
+}
+
+/* Section headings */
+h4 {
+    color: #4e73df;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+/* Form labels */
+label {
+    font-weight: 600;
+    color: #5a5c69;
+    margin-bottom: 0.5rem;
+}
+
+/* Required field indicator */
+label:after {
+    content: " *";
+    color: #e74a3b;
+    display: none;
+}
+
+label.required:after {
+    display: inline;
+}
+
+/* Add these styles */
+.is-invalid {
+    border-color: #dc3545 !important;
+}
+
+.invalid-feedback {
+    color: #dc3545;
+    font-size: 0.875em;
+}
+
+.alert-danger {
+    margin-bottom: 20px;
+}
