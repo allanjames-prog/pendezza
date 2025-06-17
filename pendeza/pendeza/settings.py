@@ -24,14 +24,14 @@ ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
 # Configure ALLOWED_HOSTS based on environment
 if ENVIRONMENT == 'production':
     ALLOWED_HOSTS = [
-        'your-app-name.onrender.com',
+        'pendeza-app.onrender.com',  # Your Render hostname
         'localhost',
         '127.0.0.1',
-        # Add your custom domain if you have one
+        # Add any custom domains here
     ]
     CSRF_TRUSTED_ORIGINS = [
-        'https://your-app-name.onrender.com',
-        # Add your custom domain if you have one
+        'https://pendeza-app.onrender.com',
+        # Add other secure origins
     ]
 else:
     ALLOWED_HOSTS = ['*']
