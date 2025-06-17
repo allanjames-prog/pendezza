@@ -97,22 +97,29 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'pendeza.wsgi.application'
 
-# Use SQLite locally, PostgreSQL on Render
-if os.getenv('RENDER'):  # Render automatically sets this env variable
+# Database configuration / Use SQLite locally, PostgreSQL on Render
+if os.getenv('RENDER'):  # Running on Render
     DATABASES = {
-        'default': dj_database_url.config(
-            conn_max_age=600,
-            ssl_require=True
-        )
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            **dj_database_url.config(
+                conn_max_age=600,
+                ssl_require=True
+            ),
+            # Optional PostgreSQL optimizations
+            'OPTIONS': {
+                'connect_timeout': 5,
+                'sslmode': 'require',
+            }
+        }
     }
-else:
+else:  # Local development
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
     }
-
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
