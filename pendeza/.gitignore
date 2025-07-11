@@ -16,7 +16,7 @@ __pycache__/
 /media/
 
 # SQLite DB
-db.sqlite3
+# db.sqlite3
 
 # Node modules
 node_modules/
