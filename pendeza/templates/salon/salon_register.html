@@ -1,0 +1,213 @@
+<!-- templates/salon/salon_register.html -->
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/salon_register.css' %}">
+{% endblock %}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="text-center font-weight-light my-4">
+                        {% if is_update %}Update Your Salon{% else %}Register Your Salon{% endif %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="salonRegisterForm">
+                        {% csrf_token %}
+
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <strong>Error!</strong> Please correct the following:
+                            <ul>
+                                {% for field, errors in form.errors.items %}
+                                    <li>{{ field|title }}: {{ errors|join:", " }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Salon Information Section -->
+                        <h4 class="mb-3">Salon Information</h4>
+                        <div class="mb-3">
+                            <label for="id_salon_name" class="form-label">Salon Name*</label>
+                            {{ form.salon_name }}
+                            {% if form.salon_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.salon_name.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_owner_name" class="form-label">Owner's Full Name*</label>
+                            {{ form.owner_name }}
+                            {% if form.owner_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.owner_name.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_phone_number" class="form-label">Phone Number*</label>
+                            {{ form.phone_number }}
+                            <small class="text-muted">Format: +999999999</small>
+                            {% if form.phone_number.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.phone_number.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="id_district" class="form-label">District*</label>
+                                {{ form.district }}
+                                {% if form.district.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.district.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_area" class="form-label">Area*</label>
+                                {{ form.area }}
+                                {% if form.area.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.area.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_service_category" class="form-label">Service Category*</label>
+                            {{ form.service_category }}
+                            <small class="text-muted">E.g., Hair, Nails, Spa, etc.</small>
+                            {% if form.service_category.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.service_category.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_email" class="form-label">Salon Email (optional)</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.email.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Account Setup Section -->
+                        <h4 class="mb-3 mt-4">Account Setup</h4>
+                        <div class="mb-3">
+                            <label for="id_password1" class="form-label">Password*</label>
+                            {{ form.password1 }}
+                            {% if form.password1.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.password1.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_password2" class="form-label">Confirm Password*</label>
+                            {{ form.password2 }}
+                            {% if form.password2.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.password2.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary py-2">
+                                {% if is_update %}Update Salon{% else %}Register Salon{% endif %}
+                            </button>
+                        </div>
+                        
+                        {% if is_update %}
+                        <div class="text-center mt-3">
+                            <a href="{% url 'owner_dashboard' %}" class="text-decoration-none">
+                                Back to Dashboard
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="text-center mt-3">
+                            Already have an account? 
+                            <a class="text-decoration-none">Login here</a>
+                        </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Simple client-side validation
+    const form = document.getElementById('salonRegisterForm');
+    
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // Check required fields
+        const requiredFields = form.querySelectorAll('[required]');
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        // Check password match
+        const password1 = document.getElementById('id_password1');
+        const password2 = document.getElementById('id_password2');
+        if (password1 && password2 && password1.value !== password2.value) {
+            password2.classList.add('is-invalid');
+            document.querySelector('#id_password2 + .invalid-feedback').textContent = "Passwords don't match";
+            isValid = false;
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            // Scroll to first error
+            const firstError = form.querySelector('.is-invalid');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    });
+    
+    // Phone number formatting
+    const phoneField = document.getElementById('id_phone_number');
+    if (phoneField) {
+        phoneField.addEventListener('input', function(e) {
+            // Remove all non-digit characters
+            let value = this.value.replace(/\D/g, '');
+            
+            // Add + prefix if international number
+            if (value.length > 0 && !this.value.startsWith('+')) {
+                value = '+' + value;
+            }
+            
+            this.value = value;
+        });
+    }
+});
+</script>
+{% endblock %}

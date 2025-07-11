@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
 from django.utils.html import mark_safe
-from userauthentication.models import User
+from userauths.models import User
 import os, uuid, datetime
 from django.core.validators import RegexValidator
 from django.utils import timezone
@@ -49,11 +49,8 @@ class Salon(models.Model):
     address = models.CharField(max_length=200)
     mobile = models.CharField(validators=[phone_regex], max_length=17)
     email = models.EmailField(max_length=100)
-    status = models.CharField(
-        max_length=20, 
-        choices=SalonStatus.choices, 
-        default=SalonStatus.IN_REVIEW
-    )
+    status = models.CharField(max_length=20, choices=SalonStatus.choices, default=SalonStatus.IN_REVIEW)
+    
     views = models.PositiveIntegerField(default=0)
     featured = models.BooleanField(default=False)
     salon_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -174,6 +171,9 @@ class SalonGallery(models.Model):
         verbose_name_plural = "Salon Gallery"  
         ordering = ['-id']  
 
+
+
+# Remove this ====================================================================
 # Salon Features
 class SalonFeatures(models.Model):
     salon = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='features')
@@ -190,6 +190,9 @@ class SalonFeatures(models.Model):
                 f'<i class="{self.icon}" style="font-size: 50px;"></i>'
             )
         return "No Icon"
+# Remove this ====================================================================
+
+
     
     def get_icon_type_display(self):
         """Returns the display name of the icon type"""
@@ -253,7 +256,6 @@ class SalonServices(models.Model):
     is_active = models.BooleanField(default=True)
     
     # Visual elements
-    icon = models.CharField(max_length=100, null=True, blank=True, help_text="Font icon class")
     image = models.ImageField(upload_to='service_images/', null=True, blank=True)
     
     # System fields
@@ -549,16 +551,8 @@ class Booking(models.Model):
     notes = models.TextField(blank=True, null=True)
     
     # Status Tracking
-    status = models.CharField(
-        max_length=20, 
-        choices=BookingStatus.choices, 
-        default=BookingStatus.PENDING
-    )
-    payment_status = models.CharField(
-        max_length=20, 
-        choices=PaymentStatus.choices, 
-        default=PaymentStatus.PENDING
-    )
+    status = models.CharField(max_length=20, choices=BookingStatus.choices, default=BookingStatus.PENDING)
+    payment_status = models.CharField(max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING)
     
     # Financials
     price = models.DecimalField(max_digits=8, decimal_places=2)
@@ -568,14 +562,7 @@ class Booking(models.Model):
     amount_paid = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
     
     # Staff Assignment
-    staff_member = models.ForeignKey(
-        User, 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True, 
-        related_name='assigned_bookings',
-        limit_choices_to={'groups__name': 'Staff'}  # Only staff members can be assigned
-    )
+    staff_member = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_bookings', limit_choices_to={'groups__name': 'Staff'})
     
     # System Fields
     created_at = models.DateTimeField(auto_now_add=True)

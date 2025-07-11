@@ -1,3 +1,183 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+/* salon_dashboard.css */
+.sidebar {
+    min-height: 100vh;
+    height: 100%;
+}
+
+.sidebar .nav-link {
+    padding: 0.75rem 1rem;
+    border-radius: 0;
+    transition: all 0.3s;
+}
+
+.sidebar .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.card {
+    border: none;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.card-header {
+    border-radius: 0 !important;
+}
+</style>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 bg-dark text-white p-0">
+            <div class="sidebar-sticky pt-3">
+                <h4 class="px-3 pb-3 border-bottom">{{ salon.name }}</h4>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active text-white" href="#overview">
+                            <i class="fas fa-tachometer-alt mr-2"></i>Overview
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#profile">
+                            <i class="fas fa-store mr-2"></i>Salon Profile
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#services">
+                            <i class="fas fa-cut mr-2"></i>Services
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#staff">
+                            <i class="fas fa-users mr-2"></i>Staff
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#settings">
+                            <i class="fas fa-cog mr-2"></i>Settings
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="col-md-9 col-lg-10 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Salon Dashboard</h2>
+                <div class="alert alert-info mb-0">
+                    Status: <strong>{{ salon.get_status_display }}</strong>
+                </div>
+            </div>
+
+            <!-- Overview Section -->
+            <section id="overview" class="mb-5">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Overview</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card bg-light mb-3">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Services</h5>
+                                        <p class="card-text display-4">{{ salon.services.count }}</p>
+                                        <a href="#services" class="btn btn-sm btn-primary">Manage</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light mb-3">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Staff Members</h5>
+                                        <p class="card-text display-4">{{ salon.staff_members.count }}</p>
+                                        <a href="#staff" class="btn btn-sm btn-primary">Manage</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light mb-3">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Profile Completeness</h5>
+                                        <div class="progress mb-3" style="height: 20px;">
+                                            <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
+                                        </div>
+                                        <a href="#profile" class="btn btn-sm btn-primary">Complete Profile</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Profile Section -->
+            <section id="profile" class="mb-5">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0">Salon Profile</h4>
+                            <button class="btn btn-light btn-sm">Edit Profile</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Basic Information</h5>
+                                <table class="table">
+                                    <tr>
+                                        <th>Salon Name</th>
+                                        <td>{{ salon.name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Owner</th>
+                                        <td>{{ request.user.get_full_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Phone Number</th>
+                                        <td>{{ salon.mobile }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Email</th>
+                                        <td>{{ salon.email|default:"Not provided" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Location</th>
+                                        <td>{{ salon.address }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Additional Information</h5>
+                                <div class="alert alert-info">
+                                    <p>Complete your salon profile to attract more customers!</p>
+                                    <ul>
+                                        <li>Add a description</li>
+                                        <li>Upload salon images</li>
+                                        <li>Set working hours</li>
+                                        <li>Add amenities</li>
+                                    </ul>
+                                    <button class="btn btn-primary">Complete Profile</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
 <!-- templates/salon/salon_register.html -->
 {% extends 'base.html' %}
 {% load static %}

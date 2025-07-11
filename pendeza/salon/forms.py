@@ -9,7 +9,8 @@ from .models import (
     SalonParking, SalonAmenity, SalonPaymentOption
 )
 from django.contrib.auth.models import User
-
+from django.contrib.auth.forms import UserCreationForm
+from django.core.validators import RegexValidator
 
 class SalonServiceForm(forms.ModelForm):
     class Meta:
@@ -26,7 +27,6 @@ class SalonServiceForm(forms.ModelForm):
             'gender',
             'is_featured',
             'is_active',
-            'icon',
             'image',
         ]
         widgets = {
@@ -48,26 +48,44 @@ SalonServiceFormSet = inlineformset_factory(
 # ======================
 # SALON Register
 # ======================
-class SalonRegisterForm(forms.ModelForm):
-    class Meta:
-        model = Salon
-        fields = ['name', 'description', 'image', 'address', 'mobile', 'email']
-        widgets = {
-            'description': forms.Textarea(attrs={'rows': 4}),
-        }
 
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-        
-        # Make image field optional if needed
-        self.fields['image'].required = False
-        
-        # Add HTML5 attributes for better UX
-        self.fields['mobile'].widget.attrs.update({'pattern': '^\+?1?\d{9,15}$'})
-        self.fields['email'].widget.attrs.update({'type': 'email'})
+class SalonRegistrationForm(forms.Form):  # Changed from ModelForm to Form
+    salon_name = forms.CharField(max_length=100, required=True)
+    owner_name = forms.CharField(max_length=100, required=True, label="Owner's Full Name")
+    phone_number = forms.CharField(
+        max_length=17,
+        required=True,
+        validators=[RegexValidator(
+            regex=r'^\+?1?\d{9,15}$',
+            message="Phone number must be entered in the format: '+999999999'"
+        )]
+    )
+    district = forms.CharField(max_length=100, required=True)
+    area = forms.CharField(max_length=100, required=True)
+    service_category = forms.CharField(max_length=100, required=True)
+    email = forms.EmailField(required=False)
+    password1 = forms.CharField(
+        label="Password",
+        widget=forms.PasswordInput,
+        min_length=8,
+        help_text="Your password must contain at least 8 characters."
+    )
+    password2 = forms.CharField(
+        label="Password confirmation",
+        widget=forms.PasswordInput,
+        help_text="Enter the same password as before, for verification."
+    )
 
-# Add these to your forms.py after SalonRegisterForm
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get("password1")
+        password2 = cleaned_data.get("password2")
+
+        if password1 and password2 and password1 != password2:
+            self.add_error('password2', "Passwords don't match")
+        
+        return cleaned_data
+
 
 class SalonGalleryForm(forms.ModelForm):
     class Meta:
@@ -197,7 +215,7 @@ class SalonServicesInline(admin.TabularInline):
             'fields': ('base_price', 'women_price', 'men_price', 'children_price')
         }),
         ('Visuals', {
-            'fields': ('icon', 'thumbnail'),
+            'fields': ('thumbnail',),
             'classes': ('collapse',)
         })
     )
@@ -467,7 +485,7 @@ class SalonAdmin(admin.ModelAdmin):
         }),
         ('Metadata', {
             'fields': ('views', 'date', 'updated_at'),
-            'classes': ('collapse',)  # Makes this section collapsible
+            'classes': ('collapse',)  
         })
     )
     readonly_fields = ['date', 'updated_at', 'view_count', 'slug']

@@ -7,7 +7,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # Custom URLs
-    path("user/", include("userauthentication.urls")),
+    path("user/", include("userauths.urls")),
     path("", include("salon.urls")),
 ] 
 

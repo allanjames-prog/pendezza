@@ -87,7 +87,7 @@ class SalonServicesInline(admin.TabularInline):
             'fields': ('base_price', 'women_price', 'men_price', 'children_price')
         }),
         ('Visuals', {
-            'fields': ('icon', 'thumbnail'),
+            'fields': ('thumbnail',),
             'classes': ('collapse',)
         })
     )
@@ -277,7 +277,7 @@ class SalonPaymentOptionInline(admin.TabularInline):
 # ======================
 # SALON ADMIN
 # ======================
-
+ 
 class SalonAdmin(admin.ModelAdmin):
     inlines = [SalonGalleryInline, SalonFeaturesInline, SalonFaqInline, SalonServicesInline, StaffOnDutyInline, SalonWorkingHoursInline, SalonParkingInline, SalonAmenityInline, SalonPaymentOptionInline]
     model = Salon
@@ -302,7 +302,7 @@ class SalonAdmin(admin.ModelAdmin):
         }),
         ('Metadata', {
             'fields': ('views', 'date', 'updated_at'),
-            'classes': ('collapse',)  # Makes this section collapsible
+            'classes': ('collapse',) 
         })
     )
     readonly_fields = ['date', 'updated_at', 'view_count', 'slug']

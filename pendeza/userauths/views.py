@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect
-from userauthentication.models import User, Profile
-from userauthentication.forms import UserRegisterForm
+from userauths.models import User, Profile
+from userauths.forms import UserRegisterForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
 
 
 def RegisterView(request):
@@ -49,12 +50,13 @@ def RegisterView(request):
 def logout_view(request):
     logout(request)
     messages.success(request, "You have been successfully logged out.")
-    return redirect('salon:index')  # Redirect to your homepage after logout 
+    return redirect('salon:index')   
 
-from django.views.decorators.cache import never_cache
 
 @never_cache
 def loginViewTemp(request):
+
+  # change this function so that it redirects users to there respective pages(dashboard) based on the persions
     if request.user.is_authenticated:
         messages.warning(request, "You are already logged in")
         return redirect("salon:index")

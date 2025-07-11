@@ -77,4 +77,8 @@ urlpatterns = [
     path('<slug:slug>/team/<uuid:staff_id>/', TeamDetailView.as_view(), name='team_detail'),
     path('<slug:slug>/team/<uuid:staff_id>/update/', TeamMemberUpdateView.as_view(), name='team_member_update'),
     path('<slug:slug>/team/<uuid:staff_id>/delete/', TeamMemberDeleteView.as_view(), name='team_member_delete'),
+
+    path('register/', views.SalonCreateView.as_view(), name='salon_register'),
+    path('dashboard/', views.owner_dashboard, name='owner_dashboard'),
+    path('update/<int:pk>/', views.SalonUpdateView.as_view(), name='salon_update'),
 ]

@@ -37,7 +37,7 @@
         <a href="#" class="btn btn-hero-primary btn-lg me-3">
           <i class="fas fa-calendar-alt me-2"></i> Book Now
         </a>
-        <a href="{% url 'userauthentication:sign_up' %}" class="btn btn-hero-secondary btn-lg">
+        <a href="{% url 'userauths:sign_up' %}" class="btn btn-hero-secondary btn-lg">
           <i class="fas fa-user-plus me-2"></i> Join Us
         </a>
       </div>
@@ -327,7 +327,7 @@
     <a href="#" class="btn btn-primary btn-lg px-4">Book Now</a>
     {% else %}
     <a
-      href="{% url 'userauthentication:sign_up' %}"
+      href="{% url 'userauths:sign_up' %}"
       class="btn btn-primary btn-lg px-4 me-2"
       >Sign Up to Claim</a
     >

@@ -16,7 +16,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default-key-for-dev-only')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('DEBUG', 'True') == 'False'
 
 # Determine environment (development or production)
 ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
@@ -56,7 +56,7 @@ INSTALLED_APPS = [
     # Custom apps
     'salon',
     'extraaddons',
-    'userauthentication',
+    'userauths',
     'userDashboard',
 ]
 
@@ -137,7 +137,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTH_USER_MODEL = 'userauthentication.User'
+AUTH_USER_MODEL = 'userauths.User'
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'

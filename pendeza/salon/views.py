@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import json
-
+from django.contrib.auth import login
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -14,6 +14,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View, ListView, CreateView, UpdateView, DeleteView, DetailView
+from .forms import SalonRegistrationForm
 
 from salon.models import (
     salon_image_upload_path,
@@ -33,7 +34,7 @@ from salon.models import (
 )
 
 from salon.forms import (
-    SalonRegisterForm,
+    SalonRegistrationForm,
     SalonGalleryFormSet,
     SalonFeatureFormSet,
     SalonFaqFormSet,
@@ -45,9 +46,12 @@ from salon.forms import (
 from django.db.models import Sum
 
 
-from userauthentication.models import User
+from userauths.models import User
 
-
+from django.db.models import Count, Sum
+from django.utils import timezone
+from django.urls import reverse
+from salon.models import Booking, BookingStatus, PaymentStatus
 
 # ========= SALON INDEX VIEW ==========
 def index(request):
@@ -105,103 +109,55 @@ class SalonDeleteView(LoginRequiredMixin, View):
         return JsonResponse({'success': True, 'redirect_url': reverse('salon_dashboard')})
 
 # ========== SALON CREATE VIEW ==========
-class SalonCreateView(LoginRequiredMixin, View):
+
+class SalonCreateView(View):
     def get(self, request):
-        context = {
-            'salon_form': SalonRegisterForm(request=request),
-            'gallery_formset': SalonGalleryFormSet(prefix='gallery'),
-            'feature_formset': SalonFeatureFormSet(prefix='features'),
-            'faq_formset': SalonFaqFormSet(prefix='faq'),
-            'service_formset': SalonServiceFormSet(prefix='services'),
-            'staff_formset': StaffFormSet(prefix='staff'),
-            'hours_form': SalonWorkingHoursForm(prefix='hours'),
-            'step_titles': [
-                'Basic Information',
-                'Salon Images',
-                'Features & Amenities',
-                'FAQ Section',
-                'Services Offered',
-                'Staff Members',
-                'Working Hours'
-            ],
-        }
-        return render(request, 'salon/salon_create.html', context)
+        if request.user.is_authenticated:
+            try:
+                salon = request.user.salons.get()
+                return redirect('owner_dashboard')
+            except Salon.DoesNotExist:
+                pass
+        
+        form = SalonRegistrationForm()
+        return render(request, 'salon/salon_register.html', {'form': form})
     
     def post(self, request):
-        salon_form = SalonRegisterForm(request.POST, request.FILES, request=request)
-        gallery_formset = SalonGalleryFormSet(request.POST, request.FILES, prefix='gallery')
-        feature_formset = SalonFeatureFormSet(request.POST, prefix='features')
-        faq_formset = SalonFaqFormSet(request.POST, prefix='faq')
-        service_formset = SalonServiceFormSet(request.POST, request.FILES, prefix='services')
-        staff_formset = StaffFormSet(request.POST, request.FILES, prefix='staff')
-        hours_form = SalonWorkingHoursForm(request.POST, prefix='hours')
-
-        # Validate main form first
-        if salon_form.is_valid():
+        form = SalonRegistrationForm(request.POST)
+        if form.is_valid():
             try:
-                # Save main salon
-                salon = salon_form.save(commit=False)
-                salon.user = request.user
-                salon.status = SalonStatus.LIVE  # Or your preferred default status
-                salon.save()
+                # Create user account
+                user = User.objects.create_user(
+                    username=form.cleaned_data['phone_number'],  # Using phone as username
+                    email=form.cleaned_data.get('email', ''),
+                    password=form.cleaned_data['password1'],
+                    first_name=form.cleaned_data['owner_name'].split()[0],
+                    last_name=' '.join(form.cleaned_data['owner_name'].split()[1:]) if len(form.cleaned_data['owner_name'].split()) > 1 else ''
+                )
                 
-                # Process formsets only after salon has an ID
-                if gallery_formset.is_valid():
-                    gallery_formset.instance = salon
-                    gallery_formset.save()
+                # Create the salon with basic information
+                salon = Salon.objects.create(
+                    user=user,
+                    name=form.cleaned_data['salon_name'],
+                    mobile=form.cleaned_data['phone_number'],
+                    email=form.cleaned_data.get('email', ''),
+                    address=f"{form.cleaned_data['district']}, {form.cleaned_data['area']}",
+                    status=SalonStatus.IN_REVIEW  # Default status
+                )
                 
-                if feature_formset.is_valid():
-                    feature_formset.instance = salon
-                    feature_formset.save()
-                
-                if faq_formset.is_valid():
-                    faq_formset.instance = salon
-                    faq_formset.save()
-                
-                if service_formset.is_valid():
-                    service_formset.instance = salon
-                    service_formset.save()
-                
-                if staff_formset.is_valid():
-                    staff_formset.instance = salon
-                    staff_formset.save()
-                
-                if hours_form.is_valid():
-                    working_hours = hours_form.save(commit=False)
-                    working_hours.salon = salon
-                    working_hours.save()
-                
-                messages.success(request, 'Salon created successfully!')
+                # Log the user in
+                login(request, user)
                 return redirect('owner_dashboard')
                 
             except Exception as e:
-                # Rollback if any error occurs
+                # Clean up if any error occurs
+                if 'user' in locals():
+                    user.delete()
                 if 'salon' in locals():
                     salon.delete()
-                messages.error(request, f'Error saving salon: {str(e)}')
-        else:
-            messages.error(request, 'Please correct the errors below')
-            print("Form errors:", salon_form.errors)  # Debug output
-
-        context = {
-            'salon_form': salon_form,
-            'gallery_formset': gallery_formset,
-            'feature_formset': feature_formset,
-            'faq_formset': faq_formset,
-            'service_formset': service_formset,
-            'staff_formset': staff_formset,
-            'hours_form': hours_form,
-            'step_titles': [
-                'Basic Information',
-                'Salon Images',
-                'Features & Amenities',
-                'FAQ Section',
-                'Services Offered',
-                'Staff Members',
-                'Working Hours'
-            ],
-        }
-        return render(request, 'salon/salon_create.html', context)
+                form.add_error(None, f"Error during registration: {str(e)}")
+        
+        return render(request, 'salon/salon_register.html', {'form': form})
 
 # ========== SALON UPDATE VIEW ==========
 class SalonUpdateView(LoginRequiredMixin, View):
@@ -209,7 +165,7 @@ class SalonUpdateView(LoginRequiredMixin, View):
         salon = get_object_or_404(Salon, pk=pk, user=request.user)
         
         # Initialize forms with existing data
-        salon_form = SalonRegisterForm(instance=salon, request=request)
+        salon_form = SalonRegistrationForm(instance=salon, request=request)
         gallery_formset = SalonGalleryFormSet(prefix='gallery', instance=salon)
         feature_formset = SalonFeatureFormSet(prefix='features', instance=salon)
         faq_formset = SalonFaqFormSet(prefix='faq', instance=salon)
@@ -235,13 +191,14 @@ class SalonUpdateView(LoginRequiredMixin, View):
                 'Working Hours'
             ],
             'is_update': True,
+            'current_step': self.get_current_step(request),
         }
         return render(request, 'salon/salon_register.html', context)
     
     def post(self, request, pk):
         salon = get_object_or_404(Salon, pk=pk, user=request.user)
         
-        salon_form = SalonRegisterForm(request.POST, request.FILES, instance=salon, request=request)
+        salon_form = SalonRegistrationForm(request.POST, request.FILES, instance=salon, request=request)
         gallery_formset = SalonGalleryFormSet(request.POST, request.FILES, prefix='gallery', instance=salon)
         feature_formset = SalonFeatureFormSet(request.POST, prefix='features', instance=salon)
         faq_formset = SalonFaqFormSet(request.POST, prefix='faq', instance=salon)
@@ -267,7 +224,7 @@ class SalonUpdateView(LoginRequiredMixin, View):
             hours_form.save()
             
             messages.success(request, 'Salon updated successfully!')
-            return redirect('salon_detail', slug=salon.slug)
+            return redirect('owner_dashboard')
         
         # If forms are not valid, render the page with errors
         context = {
@@ -288,8 +245,16 @@ class SalonUpdateView(LoginRequiredMixin, View):
                 'Working Hours'
             ],
             'is_update': True,
+            'current_step': self.get_current_step(request),
         }
         return render(request, 'salon/salon_register.html', context)
+    
+    def get_current_step(self, request):
+        """Determine which step of profile completion the user is on"""
+        if 'step' in request.GET:
+            return int(request.GET.get('step'))
+        return 1
+    
 
 # ===============================================
 # SALON GALLERY
@@ -622,7 +587,7 @@ class SalonFaqDeleteView(LoginRequiredMixin, View):
     
 
 # ===============================================
-# SALON SERVICES API VIEW
+# SALON SERVICES 
 # ===============================================
 @method_decorator(csrf_exempt, name='dispatch')
 class SalonServiceAPIView(View):
@@ -653,7 +618,7 @@ class SalonServiceAPIView(View):
                 'gender_display': service.get_gender_display(),
                 'is_featured': service.is_featured,
                 'is_active': service.is_active,
-                'icon': service.icon,
+                'image': request.build_absolute_uri(service.image.url) if service.image else None,
                 'created_at': service.created_at.isoformat(),
             }
             return JsonResponse(data)
@@ -674,7 +639,7 @@ class SalonServiceAPIView(View):
                 'gender_display': s.get_gender_display(),
                 'is_featured': s.is_featured,
                 'is_active': s.is_active,
-                'icon': s.icon,
+                'image': request.build_absolute_uri(s.image.url) if s.image else None,
                 'created_at': s.created_at.isoformat(),
             } for s in services]
             return JsonResponse(services_data, safe=False)
@@ -691,7 +656,6 @@ class SalonServiceAPIView(View):
         
         return super().dispatch(request, *args, **kwargs)
 
-    
     def post(self, request, slug):
         """
         POST: Create new service
@@ -705,8 +669,12 @@ class SalonServiceAPIView(View):
             return JsonResponse({'error': 'Permission denied'}, status=403)
         
         try:
-            data = json.loads(request.body)
-            form = SalonServiceForm(data)
+            # Handle both form data (for images) and JSON data
+            if request.content_type == 'multipart/form-data':
+                form = SalonServiceForm(request.POST, request.FILES)
+            else:
+                data = json.loads(request.body)
+                form = SalonServiceForm(data)
             
             if form.is_valid():
                 service = form.save(commit=False)
@@ -715,7 +683,8 @@ class SalonServiceAPIView(View):
                 return JsonResponse({
                     'success': True,
                     'message': 'Service created successfully',
-                    'service_id': service.id
+                    'service_id': service.id,
+                    'image': request.build_absolute_uri(service.image.url) if service.image else None
                 }, status=201)
             return JsonResponse({
                 'error': 'Invalid data',
@@ -724,6 +693,7 @@ class SalonServiceAPIView(View):
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
     
+        
     def put(self, request, slug, service_id):
         """
         PUT: Update existing service
@@ -738,14 +708,19 @@ class SalonServiceAPIView(View):
             return JsonResponse({'error': 'Permission denied'}, status=403)
         
         try:
-            data = json.loads(request.body)
-            form = SalonServiceForm(data, instance=service)
+            # Handle both form data (for images) and JSON data
+            if request.content_type == 'multipart/form-data':
+                form = SalonServiceForm(request.POST, request.FILES, instance=service)
+            else:
+                data = json.loads(request.body)
+                form = SalonServiceForm(data, instance=service)
             
             if form.is_valid():
                 form.save()
                 return JsonResponse({
                     'success': True,
-                    'message': 'Service updated successfully'
+                    'message': 'Service updated successfully',
+                    'image': request.build_absolute_uri(service.image.url) if service.image else None
                 })
             return JsonResponse({
                 'error': 'Invalid data',
@@ -753,6 +728,7 @@ class SalonServiceAPIView(View):
             }, status=400)
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    
     
     def patch(self, request, slug, service_id):
         """
@@ -1074,34 +1050,128 @@ class BookingCalendarView(LoginRequiredMixin, View):
 # ========== Ownner Dashboard View ===========
 @login_required
 def owner_dashboard(request):
-    if not hasattr(request.user, 'salon'):  # Simple permission check
-        raise PermissionDenied
+    try:
+        salon = request.user.salons.get()
+    except Salon.DoesNotExist:
+        return redirect('salon_register')
     
-    salon = request.user.salon
+    # Calculate profile completeness
+    completeness = 20  # Base for registration
     
-    # Quick stats
+    # Check each profile component and add to completeness score
+    if salon.description:
+        completeness += 10
+    if salon.image:
+        completeness += 10
+    if hasattr(salon, 'working_hours'):
+        completeness += 10
+    if salon.services.exists():
+        completeness += 10
+    if salon.staff_members.exists():
+        completeness += 10
+    if salon.gallery_images.exists():
+        completeness += 10
+    if salon.features.exists():
+        completeness += 10
+    if salon.faqs.exists():
+        completeness += 10
+    
+    # Ensure completeness doesn't exceed 100%
+    completeness = min(completeness, 100)
+    
+    # Get recent bookings (last 5)
     recent_bookings = Booking.objects.filter(
         salon=salon
-    ).order_by('-created_at')[:5]
+    ).select_related('service', 'user').order_by('-created_at')[:5]
     
+    # Get staff count
     staff_count = salon.staff_members.filter(status='Active').count()
+    
+    # Get active services count
     active_services = salon.services.filter(is_active=True).count()
     
-    # Earnings (placeholder - implement properly later)
+    # Calculate monthly earnings (only paid bookings)
+    current_month = timezone.now().month
     monthly_earnings = Booking.objects.filter(
         salon=salon,
         payment_status=PaymentStatus.PAID,
-        booking_date__month=datetime.now().month
-    ).aggregate(Sum('price'))['price__sum'] or 0
-
+        booking_date__month=current_month
+    ).aggregate(total=Sum('price'))['total'] or 0
+    
+    # Get next steps for profile completion
+    next_steps = get_next_steps(salon)
+    
     context = {
         'salon': salon,
         'recent_bookings': recent_bookings,
+        'profile_completeness': completeness,
+        'next_steps': next_steps,
         'staff_count': staff_count,
         'active_services': active_services,
         'monthly_earnings': monthly_earnings,
+        'current_month': timezone.now().strftime('%B'),  # e.g. "January"
+        'booking_status_counts': get_booking_status_counts(salon),
     }
     return render(request, 'owner/dashboard.html', context)
+
+def get_next_steps(salon):
+    """Helper function to determine next steps for profile completion"""
+    next_steps = []
+    
+    if not salon.description:
+        next_steps.append({
+            'url': reverse('salon_update', kwargs={'pk': salon.pk}),
+            'text': 'Add salon description',
+            'icon': 'fas fa-edit'
+        })
+    if not salon.image:
+        next_steps.append({
+            'url': reverse('salon_update', kwargs={'pk': salon.pk}),
+            'text': 'Upload salon image',
+            'icon': 'fas fa-camera'
+        })
+    if not hasattr(salon, 'working_hours'):
+        next_steps.append({
+            'url': reverse('salon_update', kwargs={'pk': salon.pk}) + '?section=hours',
+            'text': 'Set working hours',
+            'icon': 'fas fa-clock'
+        })
+    if not salon.services.exists():
+        next_steps.append({
+            'url': reverse('salon_update', kwargs={'pk': salon.pk}) + '?section=services',
+            'text': 'Add services',
+            'icon': 'fas fa-scissors'
+        })
+    if not salon.staff_members.exists():
+        next_steps.append({
+            'url': reverse('salon_update', kwargs={'pk': salon.pk}) + '?section=staff',
+            'text': 'Add staff members',
+            'icon': 'fas fa-users'
+        })
+    
+    # Return max 3 most important next steps
+    return next_steps[:3]
+
+def get_booking_status_counts(salon):
+    """Get counts of bookings by status for dashboard stats"""
+    status_counts = Booking.objects.filter(salon=salon).values(
+        'status'
+    ).annotate(
+        count=Count('id')
+    ).order_by('status')
+    
+    # Convert to more usable format
+    counts_dict = {item['status']: item['count'] for item in status_counts}
+    
+    # Ensure all statuses are represented
+    return {
+        'pending': counts_dict.get(BookingStatus.PENDING, 0),
+        'confirmed': counts_dict.get(BookingStatus.CONFIRMED, 0),
+        'completed': counts_dict.get(BookingStatus.COMPLETED, 0),
+        'cancelled': counts_dict.get(BookingStatus.CANCELLED, 0),
+    }
+
+
 
 # ========== Owner Booking ListView ===========
 class OwnerBookingListView(LoginRequiredMixin, ListView):

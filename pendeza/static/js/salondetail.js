@@ -169,7 +169,6 @@ function renderServices(container, spinner, services) {
   }
 }
 
-
 // Services loader
 function loadServices() {
   const container = document.getElementById('services-container');
@@ -237,31 +236,41 @@ function createServiceCardHTML(service) {
   const icon = service.icon ? 
     `<i class="${service.icon} me-2"></i>` : '';
   
+  // Add image section
+  const imageSection = service.image ? 
+    `<div class="service-card-image" style="background-image: url('${service.image}')"></div>` :
+    `<div class="service-card-image default-image">
+       <i class="fas fa-spa"></i>
+     </div>`;
+  
   return `
     <div class="col-md-6 col-lg-4 mb-4">
       <div class="service-card h-100" data-service-id="${service.id}">
         ${featuredBadge}
-        <div class="service-card-header">
-          <h5 class="mb-0">
-            ${icon}
-            ${service.name}
-          </h5>
-          <span class="service-price">${price}</span>
-        </div>
-        <div class="service-card-body">
-          ${service.description ? `<p>${service.description}</p>` : ''}
-          <div class="d-flex justify-content-between align-items-center mt-3">
-            <span class="service-duration">
-              <i class="fas fa-clock me-1"></i>
-              ${service.duration} min
-            </span>
-            <span class="service-category badge bg-light text-dark">
-              ${service.category}
-            </span>
-            <button class="btn btn-sm btn-primary view-details" 
-                    data-service-id="${service.id}">
-              Details
-            </button>
+        ${imageSection}
+        <div class="service-card-content">
+          <div class="service-card-header">
+            <h5 class="mb-0">
+              ${icon}
+              ${service.name}
+            </h5>
+            <span class="service-price">${price}</span>
+          </div>
+          <div class="service-card-body">
+            ${service.description ? `<p>${service.description}</p>` : ''}
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <span class="service-duration">
+                <i class="fas fa-clock me-1"></i>
+                ${service.duration} min
+              </span>
+              <span class="service-category badge bg-light text-dark">
+                ${service.category}
+              </span>
+              <button class="btn btn-sm btn-primary view-details" 
+                      data-service-id="${service.id}">
+                Details
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -277,7 +286,6 @@ function handleServicesError(container, spinner) {
     </div>
   `;
 }
-
 
 function showServiceDetails(serviceId) {
   const modal = new bootstrap.Modal(document.getElementById('serviceModal'));
@@ -298,11 +306,8 @@ function showServiceDetails(serviceId) {
     return;
   }
   
-  console.log(`Fetching service ${serviceId} for salon ${salonSlug}`); // Debug log
-  
   fetch(`/salon/${salonSlug}/services/${serviceId}/`)
     .then(response => {
-      console.log('Raw response:', response); // Debug log
       if (!response.ok) {
         return response.json().then(err => {
           throw new Error(err.error || `HTTP error! status: ${response.status}`);
@@ -313,7 +318,6 @@ function showServiceDetails(serviceId) {
       return response.json();
     })
     .then(service => {
-      console.log('Service data:', service); // Debug log
       if (!service || !service.id) {
         throw new Error('Invalid service data received');
       }
@@ -333,9 +337,19 @@ function renderServiceDetails(modal, modalTitle, modalBody, service) {
   const menPrice = service.men_price ? `$${parseFloat(service.men_price).toFixed(2)}` : 'Not offered';
   const childrenPrice = service.children_price ? `$${parseFloat(service.children_price).toFixed(2)}` : 'Not offered';
   
+  // Add image section for modal
+  const imageSection = service.image ? 
+    `<div class="service-detail-image mb-4" style="background-image: url('${service.image}')"></div>` :
+    `<div class="service-detail-image default-image mb-4">
+       <i class="fas fa-spa"></i>
+     </div>`;
+  
   modalBody.innerHTML = `
     <div class="row">
-      <div class="col-md-6">
+      <div class="col-md-5">
+        ${imageSection}
+      </div>
+      <div class="col-md-7">
         <p class="text-muted">${service.description || 'No description available.'}</p>
         <div class="mb-3">
           <h6>Duration:</h6>
@@ -345,9 +359,7 @@ function renderServiceDetails(modal, modalTitle, modalBody, service) {
           <h6>Category:</h6>
           <p>${service.category_display || service.category || 'N/A'}</p>
         </div>
-      </div>
-      <div class="col-md-6">
-        <div class="card">
+        <div class="card mt-4">
           <div class="card-header bg-light">
             <h6 class="mb-0">Pricing</h6>
           </div>
@@ -397,3 +409,4 @@ function showError(modal, modalTitle, modalBody, message) {
   `;
   modal.show();
 }
+

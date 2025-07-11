@@ -18,9 +18,7 @@ IDENTITY_TYPE = (
 )
 
 def user_directory_path(instance, filename):
-  # Extract the file extension from the original filename
   ext = filename.split(".")[-1]
-   # Rename the file using the user's ID and append the original filename
   filename = "%s.%s" %(instance.user.id, filename)
   return "user_{0}/{1}".format(instance.user.id, filename)
   
@@ -36,7 +34,6 @@ class User(AbstractUser):
 
   # Fix for the reverse accessor clashes
   groups = models.ManyToManyField(Group, related_name='%(app_label)s_%(class)s_groups', related_query_name='%(app_label)s_%(class)s', blank=True,)
-
   user_permissions = models.ManyToManyField(Permission, related_name='%(app_label)s_%(class)s_permissions', related_query_name='%(app_label)s_%(class)s', blank=True)
 
   USERNAME_FIELD = 'email'
