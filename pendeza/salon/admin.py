@@ -279,7 +279,7 @@ class SalonPaymentOptionInline(admin.TabularInline):
 # ======================
  
 class SalonAdmin(admin.ModelAdmin):
-    inlines = [SalonGalleryInline, SalonFeaturesInline, SalonFaqInline, SalonServicesInline, StaffOnDutyInline, SalonWorkingHoursInline, SalonParkingInline, SalonAmenityInline, SalonPaymentOptionInline]
+    inlines = [SalonGalleryInline, SalonFeaturesInline, SalonServicesInline]
     model = Salon
     list_per_page = 25
     date_hierarchy = 'date'
