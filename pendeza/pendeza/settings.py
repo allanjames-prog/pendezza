@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'extraaddons',
     'userauths',
     'userDashboard',
+    'booking',
 ]
 
 # Crispy Forms settings

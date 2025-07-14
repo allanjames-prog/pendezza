@@ -4,10 +4,11 @@ from django.contrib import admin
 from django.utils.html import format_html
 from .models import (
     Salon, SalonStatus, SalonGallery, SalonFeatures, SalonFaq, 
-    ServiceGender, SalonServices, BookingStatus, PaymentStatus,
+    ServiceGender, SalonServices, 
     StaffRole, StaffStatus, StaffOnDuty, SalonWorkingHours,
     SalonParking, SalonAmenity, SalonPaymentOption
 )
+from booking.models import BookingStatus, PaymentStatus
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.core.validators import RegexValidator

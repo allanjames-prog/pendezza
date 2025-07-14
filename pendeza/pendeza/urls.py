@@ -9,6 +9,8 @@ urlpatterns = [
     # Custom URLs
     path("user/", include("userauths.urls")),
     path("", include("salon.urls")),
+    path('booking/', include('booking.urls')),
+    path('dashboard/', include('userDashboard.urls')),
 ] 
 
 

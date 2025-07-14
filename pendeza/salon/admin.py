@@ -1,6 +1,14 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from salon.models import Salon, SalonStatus, SalonGallery, SalonFeatures, SalonFaq, ServiceGender, ServiceCategory, SalonServices, BookingStatus, PaymentStatus, Booking, StaffRole, StaffStatus, StaffOnDuty, SalonNotification, SalonWorkingHours, SalonParking, SalonAmenity, SalonPaymentOption
+from salon.models import (
+    Salon, SalonStatus, SalonGallery, SalonFeatures, 
+    SalonFaq, ServiceGender, ServiceCategory, 
+    SalonServices, SalonNotification, 
+    SalonWorkingHours, SalonParking, 
+    SalonAmenity, SalonPaymentOption,
+    StaffRole, StaffStatus, StaffOnDuty
+)
+from booking.models import BookingStatus, PaymentStatus, Booking
 from django.contrib.auth.models import User
 
 

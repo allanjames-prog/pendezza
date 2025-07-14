@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta
 import json
 from django.contrib.auth import login
 from django.contrib import messages
@@ -6,29 +5,23 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
-from django.forms.models import model_to_dict
 from django.http import Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import View, ListView, CreateView, UpdateView, DeleteView, DetailView
+from django.views.generic import View, ListView, CreateView, UpdateView, DetailView
 from .forms import SalonRegistrationForm
 
+
 from salon.models import (
-    salon_image_upload_path,
     Salon,
     SalonGallery,
     SalonFeatures,
     SalonFaq,
     SalonServices,
-    ServiceCategory,
     SalonStatus,
-    BookingStatus,
-    Booking,
-    ServiceGender,
-    PaymentStatus,
     StaffOnDuty,
     SalonReview,
 )
@@ -43,15 +36,11 @@ from salon.forms import (
     StaffFormSet,
     SalonWorkingHoursForm,
 )
-from django.db.models import Sum
 
 
 from userauths.models import User
 
-from django.db.models import Count, Sum
-from django.utils import timezone
 from django.urls import reverse
-from salon.models import Booking, BookingStatus, PaymentStatus
 
 # ========= SALON INDEX VIEW ==========
 def index(request):
@@ -853,363 +842,3 @@ class SalonReviewsView(ListView):
         return context
 
 
-
-
-# ============================================
-# BOOKING AND PAYMENT STATUS VIEWS
-# ============================================
-# ========== BOOKING LIST VIEW ==========
-class BookingListView(LoginRequiredMixin, ListView):
-    model = Booking
-    template_name = 'salon/booking_list.html'
-    context_object_name = 'bookings'
-    paginate_by = 10
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        
-        # For salon owners - show their salon's bookings
-        if hasattr(self.request.user, 'salons'):
-            salon_ids = self.request.user.salons.values_list('id', flat=True)
-            return queryset.filter(salon_id__in=salon_ids)
-        
-        # For regular users - show only their bookings
-        return queryset.filter(user=self.request.user)
-
-# ========== BOOKING CREATE VIEW ==========
-class BookingCreateView(LoginRequiredMixin, CreateView):
-    model = Booking
-    template_name = 'salon/booking_form.html'
-    fields = ['salon', 'service', 'booking_date', 'start_time', 'gender', 'notes']
-    success_url = reverse_lazy('booking_list')
-
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        form.instance.status = BookingStatus.PENDING
-        form.instance.payment_status = PaymentStatus.PENDING
-        
-        # Calculate price based on gender
-        service = form.cleaned_data['service']
-        form.instance.price = service.get_price_for_gender(form.cleaned_data['gender'])
-        
-        return super().form_valid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['services'] = SalonServices.objects.filter(is_active=True)
-        return context
-
-# ========== BOOKING DETAIL VIEW ==========
-class BookingDetailView(LoginRequiredMixin, DetailView):
-    model = Booking
-    template_name = 'salon/booking_detail.html'
-    context_object_name = 'booking'
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        return self.filter_by_user_permission(queryset)
-
-    def filter_by_user_permission(self, queryset):
-        booking = get_object_or_404(queryset, pk=self.kwargs['pk'])
-        
-        # Allow access if user is the booking owner or salon owner
-        if self.request.user == booking.user or self.request.user == booking.salon.user:
-            return queryset
-        raise PermissionDenied
-
-# ========== BOOKING UPDATE VIEW ==========
-class BookingUpdateView(LoginRequiredMixin, UpdateView):
-    model = Booking
-    template_name = 'salon/booking_form.html'
-    fields = ['service', 'booking_date', 'start_time', 'gender', 'notes']
-    success_url = reverse_lazy('booking_list')
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        return self.filter_by_user_permission(queryset)
-
-    def form_valid(self, form):
-        if form.instance.status not in [BookingStatus.PENDING, BookingStatus.CONFIRMED]:
-            form.add_error(None, "Only pending or confirmed bookings can be modified")
-            return self.form_invalid(form)
-        return super().form_valid(form)
-
-# ========== BOOKING DELETE VIEW ==========
-class BookingDeleteView(LoginRequiredMixin, DeleteView):
-    model = Booking
-    template_name = 'salon/booking_confirm_delete.html'
-    success_url = reverse_lazy('booking_list')
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        return queryset.filter(user=self.request.user)
-
-# ========== BOOKING STATUS UPDATE VIEW ==========
-class BookingStatusUpdateView(LoginRequiredMixin, View):
-    def post(self, request, pk):
-        booking = get_object_or_404(Booking, pk=pk)
-        
-        # Verify user has permission (salon owner or staff)
-        if request.user != booking.salon.user and request.user not in booking.salon.staff_members.all():
-            return JsonResponse({'error': 'Permission denied'}, status=403)
-        
-        new_status = request.POST.get('status')
-        if new_status not in BookingStatus.values:
-            return JsonResponse({'error': 'Invalid status'}, status=400)
-        
-        # Validate status transitions
-        valid_transitions = {
-            BookingStatus.PENDING: [BookingStatus.CONFIRMED, BookingStatus.CANCELLED],
-            BookingStatus.CONFIRMED: [BookingStatus.COMPLETED, BookingStatus.CANCELLED, BookingStatus.NO_SHOW],
-            # Add other valid transitions as needed
-        }
-        
-        if new_status not in valid_transitions.get(booking.status, []):
-            return JsonResponse({'error': 'Invalid status transition'}, status=400)
-        
-        booking.status = new_status
-        booking.save()
-        
-        return JsonResponse({
-            'success': True,
-            'new_status': booking.get_status_display(),
-            'status_class': self.get_status_class(new_status)
-        })
-
-    def get_status_class(self, status):
-        status_classes = {
-            BookingStatus.PENDING: 'warning',
-            BookingStatus.CONFIRMED: 'info',
-            BookingStatus.COMPLETED: 'success',
-            BookingStatus.CANCELLED: 'danger',
-            BookingStatus.NO_SHOW: 'secondary',
-        }
-        return status_classes.get(status, 'light')
-
-# ========== PAYMENT STATUS UPDATE VIEW ==========
-class PaymentStatusUpdateView(LoginRequiredMixin, View):
-    def post(self, request, pk):
-        booking = get_object_or_404(Booking, pk=pk)
-        
-        # Verify user has permission (salon owner or staff)
-        if request.user != booking.salon.user and request.user not in booking.salon.staff_members.all():
-            return JsonResponse({'error': 'Permission denied'}, status=403)
-        
-        new_status = request.POST.get('status')
-        if new_status not in PaymentStatus.values:
-            return JsonResponse({'error': 'Invalid status'}, status=400)
-        
-        booking.payment_status = new_status
-        booking.save()
-        
-        return JsonResponse({
-            'success': True,
-            'new_status': booking.get_payment_status_display(),
-            'status_class': self.get_status_class(new_status)
-        })
-
-    def get_status_class(self, status):
-        status_classes = {
-            PaymentStatus.PENDING: 'warning',
-            PaymentStatus.PAID: 'success',
-            PaymentStatus.PARTIAL: 'info',
-            PaymentStatus.REFUNDED: 'secondary',
-            PaymentStatus.FAILED: 'danger',
-        }
-        return status_classes.get(status, 'light')
-
-# ========== BOOKING CALENDAR VIEW ==========
-class BookingCalendarView(LoginRequiredMixin, View):
-    def get(self, request):
-        # For salon owners - show their salon's bookings
-        if hasattr(request.user, 'salons'):
-            salon_ids = request.user.salons.values_list('id', flat=True)
-            bookings = Booking.objects.filter(salon_id__in=salon_ids)
-        else:
-            # For regular users - show only their bookings
-            bookings = Booking.objects.filter(user=request.user)
-        
-        events = []
-        for booking in bookings:
-            events.append({
-                'title': booking.calendar_event_title,
-                'start': f"{booking.booking_date}T{booking.start_time}",
-                'end': f"{booking.booking_date}T{booking.end_time}",
-                'status': booking.status,
-                'payment_status': booking.payment_status,
-                'url': reverse('booking_detail', kwargs={'pk': booking.pk}),
-            })
-        
-        return JsonResponse(events, safe=False)
-
-
-
-# ============================================
-# OWNER DASHBOARD
-# ============================================
-# ========== Ownner Dashboard View ===========
-@login_required
-def owner_dashboard(request):
-    try:
-        salon = request.user.salons.get()
-    except Salon.DoesNotExist:
-        return redirect('salon_register')
-    
-    # Calculate profile completeness
-    completeness = 20  # Base for registration
-    
-    # Check each profile component and add to completeness score
-    if salon.description:
-        completeness += 10
-    if salon.image:
-        completeness += 10
-    if hasattr(salon, 'working_hours'):
-        completeness += 10
-    if salon.services.exists():
-        completeness += 10
-    if salon.staff_members.exists():
-        completeness += 10
-    if salon.gallery_images.exists():
-        completeness += 10
-    if salon.features.exists():
-        completeness += 10
-    if salon.faqs.exists():
-        completeness += 10
-    
-    # Ensure completeness doesn't exceed 100%
-    completeness = min(completeness, 100)
-    
-    # Get recent bookings (last 5)
-    recent_bookings = Booking.objects.filter(
-        salon=salon
-    ).select_related('service', 'user').order_by('-created_at')[:5]
-    
-    # Get staff count
-    staff_count = salon.staff_members.filter(status='Active').count()
-    
-    # Get active services count
-    active_services = salon.services.filter(is_active=True).count()
-    
-    # Calculate monthly earnings (only paid bookings)
-    current_month = timezone.now().month
-    monthly_earnings = Booking.objects.filter(
-        salon=salon,
-        payment_status=PaymentStatus.PAID,
-        booking_date__month=current_month
-    ).aggregate(total=Sum('price'))['total'] or 0
-    
-    # Get next steps for profile completion
-    next_steps = get_next_steps(salon)
-    
-    context = {
-        'salon': salon,
-        'recent_bookings': recent_bookings,
-        'profile_completeness': completeness,
-        'next_steps': next_steps,
-        'staff_count': staff_count,
-        'active_services': active_services,
-        'monthly_earnings': monthly_earnings,
-        'current_month': timezone.now().strftime('%B'),  # e.g. "January"
-        'booking_status_counts': get_booking_status_counts(salon),
-    }
-    return render(request, 'owner/dashboard.html', context)
-
-def get_next_steps(salon):
-    """Helper function to determine next steps for profile completion"""
-    next_steps = []
-    
-    if not salon.description:
-        next_steps.append({
-            'url': reverse('salon_update', kwargs={'pk': salon.pk}),
-            'text': 'Add salon description',
-            'icon': 'fas fa-edit'
-        })
-    if not salon.image:
-        next_steps.append({
-            'url': reverse('salon_update', kwargs={'pk': salon.pk}),
-            'text': 'Upload salon image',
-            'icon': 'fas fa-camera'
-        })
-    if not hasattr(salon, 'working_hours'):
-        next_steps.append({
-            'url': reverse('salon_update', kwargs={'pk': salon.pk}) + '?section=hours',
-            'text': 'Set working hours',
-            'icon': 'fas fa-clock'
-        })
-    if not salon.services.exists():
-        next_steps.append({
-            'url': reverse('salon_update', kwargs={'pk': salon.pk}) + '?section=services',
-            'text': 'Add services',
-            'icon': 'fas fa-scissors'
-        })
-    if not salon.staff_members.exists():
-        next_steps.append({
-            'url': reverse('salon_update', kwargs={'pk': salon.pk}) + '?section=staff',
-            'text': 'Add staff members',
-            'icon': 'fas fa-users'
-        })
-    
-    # Return max 3 most important next steps
-    return next_steps[:3]
-
-def get_booking_status_counts(salon):
-    """Get counts of bookings by status for dashboard stats"""
-    status_counts = Booking.objects.filter(salon=salon).values(
-        'status'
-    ).annotate(
-        count=Count('id')
-    ).order_by('status')
-    
-    # Convert to more usable format
-    counts_dict = {item['status']: item['count'] for item in status_counts}
-    
-    # Ensure all statuses are represented
-    return {
-        'pending': counts_dict.get(BookingStatus.PENDING, 0),
-        'confirmed': counts_dict.get(BookingStatus.CONFIRMED, 0),
-        'completed': counts_dict.get(BookingStatus.COMPLETED, 0),
-        'cancelled': counts_dict.get(BookingStatus.CANCELLED, 0),
-    }
-
-
-
-# ========== Owner Booking ListView ===========
-class OwnerBookingListView(LoginRequiredMixin, ListView):
-    template_name = 'owner/bookings/list.html'
-    paginate_by = 10
-
-    def get_queryset(self):
-        if not hasattr(self.request.user, 'salon'):
-            raise PermissionDenied
-        return Booking.objects.filter(
-            salon=self.request.user.salon
-        ).order_by('-booking_date', '-start_time')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['status_choices'] = BookingStatus.choices
-        return context
-
-# ========== Owner Service ListView ===========
-class OwnerServiceListView(LoginRequiredMixin, ListView):
-    template_name = 'owner/services/list.html'
-
-    def get_queryset(self):
-        if not hasattr(self.request.user, 'salon'):
-            raise PermissionDenied
-        return SalonServices.objects.filter(
-            salon=self.request.user.salon
-        ).order_by('category', 'name')
-
-class OwnerServiceUpdateView(LoginRequiredMixin, UpdateView):
-    model = SalonServices
-    form_class = SalonServiceForm
-    template_name = 'owner/services/update.html'
-
-    def get_queryset(self):
-        if not hasattr(self.request.user, 'salon'):
-            raise PermissionDenied
-        return SalonServices.objects.filter(salon=self.request.user.salon)
-
-    def get_success_url(self):
-        return reverse('owner_services_list')
