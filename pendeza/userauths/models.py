@@ -30,6 +30,7 @@ class User(AbstractUser):
   email = models.EmailField(unique=True)
   phone = models.CharField(max_length=50, null=True)
   gender = models.CharField(max_length=20, choices=GENDER, default="Other")
+  
   otp = models.CharField(max_length=100, null=True, blank=True)
 
   # Fix for the reverse accessor clashes

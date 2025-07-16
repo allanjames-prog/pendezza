@@ -16,7 +16,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default-key-for-dev-only')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+# DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+DEBUG = True  
 
 # Determine environment (development or production)
 ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
@@ -59,6 +60,7 @@ INSTALLED_APPS = [
     'userauths',
     'userDashboard',
     'booking',
+    'staff',
 ]
 
 # Crispy Forms settings
@@ -116,12 +118,6 @@ else:
         }
     }
 
-
-
-
-
-
-
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -150,10 +146,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-
-# Media files
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Static files storage for production
 if ENVIRONMENT == 'production':
@@ -217,3 +209,7 @@ if ENVIRONMENT == 'production':
         raise ValueError("DEBUG must be False in production!")
     if SECRET_KEY.startswith('django-insecure-'):
         raise ValueError("Change SECRET_KEY for production!")
+    
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

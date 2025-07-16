@@ -8,6 +8,9 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
+from salon.models import Salon
+from django.utils import timezone
+
 
 # Local Models
 from .models import Booking, BookingStatus, PaymentStatus, SalonServices
@@ -20,7 +23,7 @@ from .models import Booking, BookingStatus, PaymentStatus, SalonServices
 # ========== BOOKING LIST VIEW ==========
 class BookingListView(LoginRequiredMixin, ListView):
     model = Booking
-    template_name = 'salon/booking_list.html'
+    template_name = 'booking/booking_list.html'
     context_object_name = 'bookings'
     paginate_by = 10
 
@@ -38,7 +41,7 @@ class BookingListView(LoginRequiredMixin, ListView):
 # ========== BOOKING CREATE VIEW ==========
 class BookingCreateView(LoginRequiredMixin, CreateView):
     model = Booking
-    template_name = 'salon/booking_form.html'
+    template_name = 'booking/booking_form.html'
     fields = ['salon', 'service', 'booking_date', 'start_time', 'gender', 'notes']
     success_url = reverse_lazy('booking_list')
 
@@ -61,7 +64,7 @@ class BookingCreateView(LoginRequiredMixin, CreateView):
 # ========== BOOKING DETAIL VIEW ==========
 class BookingDetailView(LoginRequiredMixin, DetailView):
     model = Booking
-    template_name = 'salon/booking_detail.html'
+    template_name = 'booking/booking_detail.html'
     context_object_name = 'booking'
 
     def get_queryset(self):
@@ -79,7 +82,7 @@ class BookingDetailView(LoginRequiredMixin, DetailView):
 # ========== BOOKING UPDATE VIEW ==========
 class BookingUpdateView(LoginRequiredMixin, UpdateView):
     model = Booking
-    template_name = 'salon/booking_form.html'
+    template_name = 'booking/booking_form.html'
     fields = ['service', 'booking_date', 'start_time', 'gender', 'notes']
     success_url = reverse_lazy('booking_list')
 
@@ -96,7 +99,7 @@ class BookingUpdateView(LoginRequiredMixin, UpdateView):
 # ========== BOOKING DELETE VIEW ==========
 class BookingDeleteView(LoginRequiredMixin, DeleteView):
     model = Booking
-    template_name = 'salon/booking_confirm_delete.html'
+    template_name = 'booking/booking_confirm_delete.html'
     success_url = reverse_lazy('booking_list')
 
     def get_queryset(self):
@@ -201,4 +204,20 @@ class BookingCalendarView(LoginRequiredMixin, View):
         
         return JsonResponse(events, safe=False)
 
-
+# ========== CURRENT BOOKING VIEW ==========
+class CurrentBookingsView(LoginRequiredMixin, ListView):
+    model = Booking
+    template_name = 'bookings/current_bookings.html'
+    context_object_name = 'bookings'
+    
+    def get_queryset(self):
+        # Get upcoming bookings (today or future)
+        return Booking.objects.filter(
+            user=self.request.user,
+            booking_date__gte=timezone.now().date()
+        ).order_by('booking_date', 'start_time')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['salon'] = get_object_or_404(Salon, pk=self.kwargs.get('salon_id'))
+        return context

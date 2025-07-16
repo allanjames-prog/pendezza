@@ -4,7 +4,7 @@ from .views import (
     OwnerServiceUpdateView
 )
 
-from salon.views import OwnerStaffCreateView, OwnerStaffListView, OwnerStaffCreateView, StaffAvailabilityView
+from staff.views import OwnerStaffCreateView, OwnerStaffListView, OwnerStaffCreateView, StaffAvailabilityView
 
 app_name = "userDashboard"
 

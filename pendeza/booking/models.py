@@ -1,9 +1,7 @@
-# Standard Library
 import uuid
 from datetime import datetime, timedelta
 
 # Django
-from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
@@ -12,8 +10,7 @@ from django.utils import timezone
 from salon.models import Salon, SalonServices
 from userauths.models import User
 from salon.models import ServiceGender
-
-
+from staff.models import StaffOnDuty
 
 
 # ============================================
@@ -29,16 +26,21 @@ class BookingStatus(models.TextChoices):
 class PaymentStatus(models.TextChoices):
     PENDING = 'Pending', 'Pending'
     PAID = 'Paid', 'Paid'
+    PROCESSING = 'Processing', 'Processing'
+    CANCELLED = 'cancelled', 'cancelled'
+    INITIATED = 'Initiated', 'Initiated'
+    UNPAID = 'Unpaid', 'Unpaid'
     PARTIAL = 'Partial', 'Partial'
     REFUNDED = 'Refunded', 'Refunded'
+    REFUNDING = 'Refunding', 'Refunding'
     FAILED = 'Failed', 'Failed'
 
 class Booking(models.Model):
     booking_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    salon = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='bookings')
+    salon = models.ForeignKey(Salon, on_delete=models.SET_NULL, related_name='bookings', null=True, blank=True)
     service = models.ForeignKey(SalonServices, on_delete=models.CASCADE, related_name='bookings')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='salon_bookings')
-    
+    staff = models.ForeignKey(StaffOnDuty, on_delete=models.SET_NULL, null=True, blank=True, related_name='bookings')
     # Booking Details
     booking_date = models.DateField()
     start_time = models.TimeField()
@@ -65,7 +67,7 @@ class Booking(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     cancellation_reason = models.TextField(blank=True, null=True)
     ip_address = models.GenericIPAddressField(blank=True, null=True)  # For tracking
-
+    
     class Meta:
         verbose_name = "Booking"
         verbose_name_plural = "Bookings"
@@ -165,3 +167,10 @@ class Booking(models.Model):
             PaymentStatus.FAILED: 'bg-danger',
         }
         return status_classes.get(self.payment_status, 'bg-light text-dark')
+
+class ActivityLog(models.Model):
+    booking = models.ForeignKey(Booking, on_delete=models.CASCADE)
+    client_out = models.DateTimeField()
+    client_in = models.DateTimeField()
+    description = models.TextField(null=True, blank=True)
+    date = models.DateTimeField(auto_now_add=True)

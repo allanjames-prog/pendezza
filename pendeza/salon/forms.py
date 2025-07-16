@@ -5,12 +5,10 @@ from django.utils.html import format_html
 from .models import (
     Salon, SalonStatus, SalonGallery, SalonFeatures, SalonFaq, 
     ServiceGender, SalonServices, 
-    StaffRole, StaffStatus, StaffOnDuty, SalonWorkingHours,
+    SalonWorkingHours,
     SalonParking, SalonAmenity, SalonPaymentOption
 )
-from booking.models import BookingStatus, PaymentStatus
-from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm
+from booking.models import PaymentStatus
 from django.core.validators import RegexValidator
 
 class SalonServiceForm(forms.ModelForm):
@@ -41,8 +39,8 @@ SalonServiceFormSet = inlineformset_factory(
     Salon,
     SalonServices,
     form=SalonServiceForm,
-    extra=1,              # Number of empty forms to display
-    can_delete=True       # Allows deletion of services in the formset
+    extra=1,              
+    can_delete=True       
 )
 
 
@@ -245,86 +243,6 @@ class SalonServicesInline(admin.TabularInline):
 
 
 # ======================
-# STAFF ON DUTY ADMIN
-# ======================
-from django import forms
-from django.forms import inlineformset_factory
-from .models import StaffOnDuty, Salon
-
-class StaffForm(forms.ModelForm):
-    class Meta:
-        model = StaffOnDuty
-        fields = [
-            'user',
-            'role',
-            'specialization',
-            'bio',
-            'hire_date',
-            'status',
-            'monday_start', 'monday_end',
-            'tuesday_start', 'tuesday_end',
-            'wednesday_start', 'wednesday_end',
-            'thursday_start', 'thursday_end',
-            'friday_start', 'friday_end',
-            'saturday_start', 'saturday_end',
-            'sunday_start', 'sunday_end',
-            'break_start',
-            'break_duration',
-            'profile_pic',
-            'display_order',
-        ]
-        widgets = {
-            'bio': forms.Textarea(attrs={'rows': 3}),
-            'specialization': forms.CheckboxSelectMultiple(),
-            'hire_date': forms.DateInput(attrs={'type': 'date'}),
-            'break_start': forms.TimeInput(attrs={'type': 'time'}),
-            'monday_start': forms.TimeInput(attrs={'type': 'time'}),
-            'monday_end': forms.TimeInput(attrs={'type': 'time'}),
-            'tuesday_start': forms.TimeInput(attrs={'type': 'time'}),
-            'tuesday_end': forms.TimeInput(attrs={'type': 'time'}),
-            'wednesday_start': forms.TimeInput(attrs={'type': 'time'}),
-            'wednesday_end': forms.TimeInput(attrs={'type': 'time'}),
-            'thursday_start': forms.TimeInput(attrs={'type': 'time'}),
-            'thursday_end': forms.TimeInput(attrs={'type': 'time'}),
-            'friday_start': forms.TimeInput(attrs={'type': 'time'}),
-            'friday_end': forms.TimeInput(attrs={'type': 'time'}),
-            'saturday_start': forms.TimeInput(attrs={'type': 'time'}),
-            'saturday_end': forms.TimeInput(attrs={'type': 'time'}),
-            'sunday_start': forms.TimeInput(attrs={'type': 'time'}),
-            'sunday_end': forms.TimeInput(attrs={'type': 'time'}),
-        }
-
-StaffFormSet = inlineformset_factory(
-    Salon,
-    StaffOnDuty,
-    form=StaffForm,
-    extra=1,
-    can_delete=True
-)
-
-class StaffOnDutyInline(admin.TabularInline):
-    model = StaffOnDuty
-    list_filter = ['role', 'status', 'salon']
-    search_fields = ['user__username', 'salon__name']
-    list_per_page = 25
-    readonly_fields = ['thumbnail']
-    
-    def is_active(self, obj):
-        return obj.status == 'Active'
-    is_active.boolean = True
-    is_active.short_description = 'Active?'
-    
-    def thumbnail(self, obj):
-        if obj.profile_pic:
-            return format_html(
-                '<img src="{}" width="50" height="50" style="object-fit: cover; border-radius: 50%;"/>',
-                obj.profile_pic.url
-            )
-        return "No Image"
-    thumbnail.short_description = 'Photo'
-
-
-# ======================
 # SALON STATUS ADMIN
 # ======================
 class SalonStatusAdmin(admin.ModelAdmin):
@@ -354,61 +272,7 @@ class ServiceGenderAdmin(admin.ModelAdmin):
     created_at.short_description = 'Created'
 
 
-# ======================
-# BOOKING STATUS ADMIN
-# ======================
-class BookingStatusAdmin(admin.ModelAdmin):
-    model = BookingStatus
-    list_filter = ['status', 'payment_status', 'salon']
-    search_fields = ['user__username', 'service__name', 'salon__name']
-    list_per_page = 25
-    date_hierarchy = 'booking_date'
-    readonly_fields = ['total_amount_display']
 
-    def booking_id(self, obj):
-        return str(obj.id)[:8]
-    booking_id.short_description = 'ID'
-
-    def time_slot(self, obj):
-        return f"{obj.start_time.strftime('%H:%M')} - {obj.end_time.strftime('%H:%M')}" if obj.start_time and obj.end_time else "-"
-    time_slot.short_description = 'Time Slot'
-
-    def total_amount_display(self, obj):
-        return f"${obj.total_amount}" if obj.total_amount else "-"
-    total_amount_display.short_description = 'Total Amount'
-
-
-
-# ======================
-# STAFF ROLE ADMIN
-# ======================
-class StaffRoleAdmin(admin.ModelAdmin):
-    model = StaffRole
-    list_filter = ['name']
-    search_fields = ['name']
-    list_per_page = 25
-    readonly_fields = ['created_at']
-
-    def created_at(self, obj):
-        return obj.date.strftime("%Y-%m-%d") if obj.date else "-"
-    created_at.short_description = 'Created'
-
-
-# ======================
-# STAFF STATUS ADMIN
-# ======================
-class StaffStatusAdmin(admin.ModelAdmin):
-    model = StaffStatus
-    list_filter = ['status', 'user']
-    search_fields = ['user__username']
-    list_per_page = 25
-    readonly_fields = ['created_at']
-
-    def created_at(self, obj):
-        return obj.date.strftime("%Y-%m-%d") if obj.date else "-"
-    created_at.short_description = 'Created'
-
- 
 
 # ======================
 # PAYMENT STATUS ADMIN
@@ -463,7 +327,7 @@ class SalonPaymentOptionInline(admin.TabularInline):
 # ======================
 
 class SalonAdmin(admin.ModelAdmin):
-    inlines = [SalonGalleryInline, SalonFeaturesInline, SalonFaqInline, SalonServicesInline, StaffOnDutyInline, SalonWorkingHoursInline, SalonParkingInline, SalonAmenityInline, SalonPaymentOptionInline]
+    inlines = [SalonGalleryInline, SalonFeaturesInline, SalonFaqInline, SalonServicesInline]
     model = Salon
     list_per_page = 25
     date_hierarchy = 'date'

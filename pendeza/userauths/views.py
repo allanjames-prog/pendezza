@@ -55,8 +55,6 @@ def logout_view(request):
 
 @never_cache
 def loginViewTemp(request):
-
-  # change this function so that it redirects users to there respective pages(dashboard) based on the persions
     if request.user.is_authenticated:
         messages.warning(request, "You are already logged in")
         return redirect("salon:index")
