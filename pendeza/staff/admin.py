@@ -1,12 +1,12 @@
 from django.contrib import admin
-from staff.models import StaffOnDuty, StaffRole, StaffStatus
+from staff.models import StaffOnDuty
 from django.utils.html import format_html
 
 
 # ======================
 # STAFF ON DUTY ADMIN
 # ======================
-class StaffOnDutyInline(admin.TabularInline):
+class StaffOnDutyAdmin(admin.ModelAdmin):
     model = StaffOnDuty
     list_filter = ['role', 'status', 'salon']
     search_fields = ['user__username', 'salon__name']
@@ -26,34 +26,5 @@ class StaffOnDutyInline(admin.TabularInline):
             )
         return "No Image"
     thumbnail.short_description = 'Photo'
+admin.site.register(StaffOnDuty, StaffOnDutyAdmin)
 
-
-
-# ======================
-# STAFF ROLE ADMIN
-# ======================
-class StaffRoleAdmin(admin.ModelAdmin):
-    model = StaffRole
-    list_filter = ['name']
-    search_fields = ['name']
-    list_per_page = 25
-    readonly_fields = ['created_at']
-
-    def created_at(self, obj):
-        return obj.date.strftime("%Y-%m-%d") if obj.date else "-"
-    created_at.short_description = 'Created'
-
-
-# ======================
-# STAFF STATUS ADMIN
-# ======================
-class StaffStatusAdmin(admin.ModelAdmin):
-    model = StaffStatus
-    list_filter = ['status', 'user']
-    search_fields = ['user__username']
-    list_per_page = 25
-    readonly_fields = ['created_at']
-
-    def created_at(self, obj):
-        return obj.date.strftime("%Y-%m-%d") if obj.date else "-"
-    created_at.short_description = 'Created'

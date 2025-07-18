@@ -58,12 +58,6 @@ class StaffOnDuty(models.Model):
 
     sunday_start = models.TimeField(null=True, blank=True)  
     sunday_end = models.TimeField(null=True, blank=True)
-
-    monday_start = models.TimeField(default=time(9, 0))
-    monday_end = models.TimeField(default=time(17, 0))
-
-    tuesday_start = models.TimeField(default=time(9, 0))
-    tuesday_end = models.TimeField(default=time(17, 0))
    
     break_start = models.TimeField(default=time(13, 0)) 
     break_duration = models.PositiveIntegerField(default=60) 

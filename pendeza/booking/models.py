@@ -66,7 +66,6 @@ class Booking(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     cancellation_reason = models.TextField(blank=True, null=True)
-    ip_address = models.GenericIPAddressField(blank=True, null=True)  # For tracking
     
     class Meta:
         verbose_name = "Booking"
