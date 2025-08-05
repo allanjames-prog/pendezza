@@ -22,6 +22,11 @@ def user_directory_path(instance, filename):
   filename = "%s.%s" %(instance.user.id, filename)
   return "user_{0}/{1}".format(instance.user.id, filename)
   
+ROLE_CHOICES = (
+    ('client', 'Client'),
+    ('owner', 'Salon Owner'),
+    ('staff', 'Staff'),
+)
 
 
 class User(AbstractUser):
@@ -30,6 +35,7 @@ class User(AbstractUser):
   email = models.EmailField(unique=True)
   phone = models.CharField(max_length=50, null=True)
   gender = models.CharField(max_length=20, choices=GENDER, default="Other")
+  role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='client')
   
   otp = models.CharField(max_length=100, null=True, blank=True)
 

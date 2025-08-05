@@ -213,3 +213,7 @@ if ENVIRONMENT == 'production':
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# settings.py
+LOGIN_URL = '/sign_in/'  # Must match your login URL pattern
+LOGIN_REDIRECT_URL = 'salon:index'  # Your default redirect after login

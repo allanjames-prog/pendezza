@@ -75,6 +75,21 @@
                         </div>
                         
                         <div class="mb-3">
+                            <label for="id_role" class="form-label">Register As</label>
+                            <select name="role" id="id_role" class="form-select py-2" required>
+                                <option value="">-- Select Role --</option>
+                                <option value="client" {% if form.role.value == "client" %}selected{% endif %}>Client</option>
+                                <option value="owner" {% if form.role.value == "owner" %}selected{% endif %}>Salon Owner</option>
+                                <option value="staff" {% if form.role.value == "staff" %}selected{% endif %}>Staff / Stylist</option>
+                            </select>
+                            {% if form.role.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.role.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
                             <label for="id_password1" class="form-label">Password</label>
                             <input type="password" name="password1" id="id_password1" 
                                    class="form-control py-2" placeholder="Create password" required>

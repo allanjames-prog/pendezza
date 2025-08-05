@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Complete Profile | PENDEZA SALON{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/complete_profile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-body p-5">
+                    <h2 class="fw-bold mb-4 text-center" style="color: var(--primary-color);">
+                        {% if role == 'owner' %}Complete Salon Profile{% else %}Complete Staff Profile{% endif %}
+                    </h2>
+
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        {% if role == 'owner' %}
+                            <!-- SALON OWNER PROFILE FORM -->
+                            <div class="mb-3">
+                                <label for="id_name" class="form-label">Salon Name</label>
+                                {{ form.name }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_address" class="form-label">Address</label>
+                                {{ form.address }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_email" class="form-label">Email</label>
+                                {{ form.email }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_mobile" class="form-label">Phone Number</label>
+                                {{ form.mobile }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_description" class="form-label">Description</label>
+                                {{ form.description }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_image" class="form-label">Salon Image</label>
+                                {{ form.image }}
+                            </div>
+
+                        {% elif role == 'staff' %}
+                            <!-- STAFF PROFILE FORM -->
+                            <div class="mb-3">
+                                <label for="id_salon" class="form-label">Salon</label>
+                                {{ form.salon }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_role" class="form-label">Role</label>
+                                {{ form.role }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_specialization" class="form-label">Specialized Services</label>
+                                {{ form.specialization }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_hire_date" class="form-label">Hire Date</label>
+                                {{ form.hire_date }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_bio" class="form-label">Bio</label>
+                                {{ form.bio }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_profile_pic" class="form-label">Profile Picture</label>
+                                {{ form.profile_pic }}
+                            </div>
+                        {% endif %}
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary py-2">
+                                Save Profile
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

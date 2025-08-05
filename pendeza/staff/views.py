@@ -63,7 +63,7 @@ class TeamDetailView(DetailView):
         return get_object_or_404(
             StaffOnDuty,
             salon__slug=self.kwargs['slug'],
-            id=self.kwargs['staff_id'],
+            pk=self.kwargs['pk'],
             status='Active'
         )
 # Lets a logged-in user (salon owner) edit a staff member.
@@ -85,6 +85,12 @@ class TeamMemberUpdateView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         form.instance.salon = get_object_or_404(Salon, slug=self.kwargs['slug'])
         return super().form_valid(form)
+    
+    def dispatch(self, request, *args, **kwargs):
+        salon = get_object_or_404(Salon, slug=self.kwargs['slug'])
+        if request.user != salon.user:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
     
 # Lists all staff for the current logged-in salon owner.
 # Protected by LoginRequiredMixin.
