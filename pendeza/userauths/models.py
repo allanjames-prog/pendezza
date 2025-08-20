@@ -78,6 +78,20 @@ class Profile(models.Model):
 
   date = models.DateTimeField(auto_now_add=True)
 
+  # Add these new fields
+  salon = models.ForeignKey('salon.Salon', on_delete=models.SET_NULL, null=True, blank=True)
+  specialization = models.CharField(max_length=200, null=True, blank=True)
+  hire_date = models.DateField(null=True, blank=True)
+  bio = models.TextField(null=True, blank=True)
+  profile_pic = models.ImageField(upload_to=user_directory_path, null=True, blank=True)
+  
+  # For salon owners
+  salon_name = models.CharField(max_length=200, null=True, blank=True)
+  salon_email = models.EmailField(null=True, blank=True)
+  salon_mobile = models.CharField(max_length=20, null=True, blank=True)
+  salon_description = models.TextField(null=True, blank=True)
+  salon_image = models.ImageField(upload_to=user_directory_path, null=True, blank=True)
+
   class Meta:
     ordering = ['-date']
 

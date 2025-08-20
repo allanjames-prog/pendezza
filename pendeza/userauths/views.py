@@ -47,17 +47,20 @@ def RegisterView(request):
 @login_required
 def complete_profile(request):
     profile = request.user.profile
+    role = request.user.role  # Get the role from the user model
 
     if request.method == 'POST':
         form = ProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
             profile = form.save(commit=False)
-            role = profile.role
-
+            
             # Optional: Add logic based on role
             if role == 'staff' and not profile.specialization:
                 messages.error(request, "Staff must provide specialization.")
-                return render(request, 'userauthentication/complete_profile.html', {'form': form})
+                return render(request, 'userauthentication/complete_profile.html', {
+                    'form': form,
+                    'role': role
+                })
             
             profile.save()
             messages.success(request, "Profile completed.")
@@ -65,8 +68,10 @@ def complete_profile(request):
     else:
         form = ProfileForm(instance=profile)
 
-    return render(request, 'userauthentication/complete_profile.html', {'form': form})
-
+    return render(request, 'userauthentication/complete_profile.html', {
+        'form': form,
+        'role': role  # Pass the role to the template
+    })
 
 @login_required
 def logout_view(request):

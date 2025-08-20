@@ -4,6 +4,26 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/complete_profile.css' %}">
+<style>
+    .form-control, .form-select {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        width: 100%;
+    }
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 5px;
+        display: block;
+    }
+    .image-upload-container {
+        border: 2px dashed #ddd;
+        padding: 20px;
+        text-align: center;
+        border-radius: 5px;
+        margin-bottom: 15px;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -13,87 +33,223 @@
             <div class="card shadow-lg">
                 <div class="card-body p-5">
                     <h2 class="fw-bold mb-4 text-center" style="color: var(--primary-color);">
-                        {% if role == 'owner' %}Complete Salon Profile{% else %}Complete Staff Profile{% endif %}
+                        {% if role == 'owner' %}Complete Salon Profile
+                        {% elif role == 'staff' %}Complete Staff Profile
+                        {% else %}Complete Your Profile{% endif %}
                     </h2>
 
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
 
+                        <!-- Common Fields for All Roles -->
+                        <div class="mb-3">
+                            <label for="id_full_name" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="id_full_name" name="full_name" 
+                                   value="{{ request.user.full_name }}" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="id_email" name="email" 
+                                   value="{{ request.user.email }}" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_phone" class="form-label">Phone Number</label>
+                            <input type="text" class="form-control" id="id_phone" name="phone" 
+                                   value="{{ form.phone.value|default:request.user.phone }}" required>
+                        </div>
+
+
                         {% if role == 'owner' %}
-                            <!-- SALON OWNER PROFILE FORM -->
+                            <!-- SALON OWNER SPECIFIC FIELDS -->
                             <div class="mb-3">
-                                <label for="id_name" class="form-label">Salon Name</label>
-                                {{ form.name }}
+                                <label for="id_salon_name" class="form-label">Salon Name*</label>
+                                <input type="text" class="form-control" id="id_salon_name" name="salon_name" 
+                                    value="{{ form.salon_name.value|default:'' }}" required>
                             </div>
 
                             <div class="mb-3">
-                                <label for="id_address" class="form-label">Address</label>
-                                {{ form.address }}
+                                <label for="id_salon_address" class="form-label">Salon Address*</label>
+                                <input type="text" class="form-control" id="id_salon_address" name="salon_address"
+                                    value="{{ form.salon_address.value|default:'' }}" required>
                             </div>
 
                             <div class="mb-3">
-                                <label for="id_email" class="form-label">Email</label>
-                                {{ form.email }}
+                                <label for="id_salon_phone" class="form-label">Salon Phone*</label>
+                                <input type="tel" class="form-control" id="id_salon_phone" name="salon_phone"
+                                    value="{{ form.salon_phone.value|default:'' }}" required>
                             </div>
 
                             <div class="mb-3">
-                                <label for="id_mobile" class="form-label">Phone Number</label>
-                                {{ form.mobile }}
+                                <label for="id_salon_email" class="form-label">Salon Email</label>
+                                <input type="email" class="form-control" id="id_salon_email" name="salon_email"
+                                    value="{{ form.salon_email.value|default:'' }}">
                             </div>
 
                             <div class="mb-3">
-                                <label for="id_description" class="form-label">Description</label>
-                                {{ form.description }}
+                                <label for="id_salon_description" class="form-label">Salon Description</label>
+                                <textarea class="form-control" id="id_salon_description" name="salon_description"
+                                        rows="3">{{ form.salon_description.value|default:'' }}</textarea>
                             </div>
 
                             <div class="mb-3">
-                                <label for="id_image" class="form-label">Salon Image</label>
-                                {{ form.image }}
+                                <label for="id_business_hours" class="form-label">Business Hours</label>
+                                <input type="text" class="form-control" id="id_business_hours" name="business_hours"
+                                    value="{{ form.business_hours.value|default:'9:00 AM - 7:00 PM' }}">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_salon_image" class="form-label">Salon Logo/Image</label>
+                                <input type="file" class="form-control" id="id_salon_image" name="salon_image"
+                                    accept="image/*">
+                                {% if form.salon_image.value %}
+                                    <small>Current: {{ form.salon_image.value.name }}</small>
+                                {% endif %}
                             </div>
 
                         {% elif role == 'staff' %}
-                            <!-- STAFF PROFILE FORM -->
+                            <!-- STAFF SPECIFIC FIELDS -->
                             <div class="mb-3">
-                                <label for="id_salon" class="form-label">Salon</label>
-                                {{ form.salon }}
+                                <label for="id_salon" class="form-label">Salon You Work At*</label>
+                                <select class="form-select" id="id_salon" name="salon" required>
+                                    <option value="">Select Salon</option>
+                                    {% for salon in salons %}
+                                        <option value="{{ salon.id }}" {% if form.salon.value == salon.id %}selected{% endif %}>
+                                            {{ salon.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
                             </div>
 
                             <div class="mb-3">
-                                <label for="id_role" class="form-label">Role</label>
-                                {{ form.role }}
+                                <label for="id_position" class="form-label">Your Position*</label>
+                                <input type="text" class="form-control" id="id_position" name="position"
+                                    value="{{ form.position.value|default:'' }}" required>
                             </div>
 
                             <div class="mb-3">
-                                <label for="id_specialization" class="form-label">Specialized Services</label>
-                                {{ form.specialization }}
+                                <label for="id_specialization" class="form-label">Specializations*</label>
+                                <input type="text" class="form-control" id="id_specialization" name="specialization"
+                                    value="{{ form.specialization.value|default:'' }}" required
+                                    placeholder="Hair coloring, Manicure, Facials...">
+                                <small class="text-muted">Separate with commas</small>
                             </div>
 
                             <div class="mb-3">
-                                <label for="id_hire_date" class="form-label">Hire Date</label>
-                                {{ form.hire_date }}
+                                <label for="id_years_experience" class="form-label">Years of Experience</label>
+                                <input type="number" class="form-control" id="id_years_experience" name="years_experience"
+                                    value="{{ form.years_experience.value|default:'0' }}" min="0" max="50">
                             </div>
 
                             <div class="mb-3">
-                                <label for="id_bio" class="form-label">Bio</label>
-                                {{ form.bio }}
+                                <label for="id_certifications" class="form-label">Certifications</label>
+                                <textarea class="form-control" id="id_certifications" name="certifications"
+                                        rows="2">{{ form.certifications.value|default:'' }}</textarea>
                             </div>
 
                             <div class="mb-3">
-                                <label for="id_profile_pic" class="form-label">Profile Picture</label>
-                                {{ form.profile_pic }}
+                                <label for="id_work_days" class="form-label">Regular Work Days</label>
+                                <input type="text" class="form-control" id="id_work_days" name="work_days"
+                                    value="{{ form.work_days.value|default:'Monday - Friday' }}">
+                            </div>
+
+                        {% else %}
+                            <!-- CLIENT SPECIFIC FIELDS -->
+                            <div class="mb-3">
+                                <label for="id_gender" class="form-label">Gender</label>
+                                <select class="form-select" id="id_gender" name="gender">
+                                    <option value="">Select Gender</option>
+                                    <option value="Female" {% if form.gender.value == "Female" %}selected{% endif %}>Female</option>
+                                    <option value="Male" {% if form.gender.value == "Male" %}selected{% endif %}>Male</option>
+                                    <option value="Other" {% if form.gender.value == "Other" %}selected{% endif %}>Other</option>
+                                    <option value="Prefer not to say" {% if form.gender.value == "Prefer not to say" %}selected{% endif %}>Prefer not to say</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_birth_date" class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" id="id_birth_date" name="birth_date"
+                                    value="{{ form.birth_date.value|default:'' }}">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_preferred_services" class="form-label">Preferred Services</label>
+                                <select class="form-select" id="id_preferred_services" name="preferred_services" multiple>
+                                    <option value="Haircut" {% if "Haircut" in form.preferred_services.value %}selected{% endif %}>Haircut</option>
+                                    <option value="Coloring" {% if "Coloring" in form.preferred_services.value %}selected{% endif %}>Coloring</option>
+                                    <option value="Manicure" {% if "Manicure" in form.preferred_services.value %}selected{% endif %}>Manicure</option>
+                                    <option value="Pedicure" {% if "Pedicure" in form.preferred_services.value %}selected{% endif %}>Pedicure</option>
+                                    <option value="Facial" {% if "Facial" in form.preferred_services.value %}selected{% endif %}>Facial</option>
+                                    <option value="Waxing" {% if "Waxing" in form.preferred_services.value %}selected{% endif %}>Waxing</option>
+                                    <option value="Massage" {% if "Massage" in form.preferred_services.value %}selected{% endif %}>Massage</option>
+                                </select>
+                                <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_hair_type" class="form-label">Hair Type (if applicable)</label>
+                                <select class="form-select" id="id_hair_type" name="hair_type">
+                                    <option value="">Select Hair Type</option>
+                                    <option value="Straight" {% if form.hair_type.value == "Straight" %}selected{% endif %}>Straight</option>
+                                    <option value="Wavy" {% if form.hair_type.value == "Wavy" %}selected{% endif %}>Wavy</option>
+                                    <option value="Curly" {% if form.hair_type.value == "Curly" %}selected{% endif %}>Curly</option>
+                                    <option value="Coily" {% if form.hair_type.value == "Coily" %}selected{% endif %}>Coily</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_allergies" class="form-label">Any Allergies?</label>
+                                <textarea class="form-control" id="id_allergies" name="allergies"
+                                        rows="2" placeholder="List any allergies to products...">{{ form.allergies.value|default:'' }}</textarea>
                             </div>
                         {% endif %}
 
+                        <!-- Profile Image Upload -->
+                        <div class="mb-3">
+                            <label class="form-label">Profile Image</label>
+                            <div class="image-upload-container">
+                                {% if form.profile_image.value %}
+                                    <img src="{{ form.profile_image.value.url }}" alt="Current Profile Image" style="max-width: 200px; margin-bottom: 15px;"><br>
+                                {% endif %}
+                                <input type="file" class="form-control" id="id_profile_image" name="profile_image" accept="image/*">
+                                <small class="text-muted">Upload a clear photo of yourself</small>
+                            </div>
+                        </div>
+
                         <div class="d-grid mt-4">
                             <button type="submit" class="btn btn-primary py-2">
-                                Save Profile
+                                {% if role == 'owner' %}Save Salon Profile
+                                {% elif role == 'staff' %}Save Staff Profile
+                                {% else %}Save Profile{% endif %}
                             </button>
                         </div>
                     </form>
-
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Preview image before upload
+    document.getElementById('id_profile_image').addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            const preview = document.createElement('img');
+            preview.src = URL.createObjectURL(e.target.files[0]);
+            preview.style.maxWidth = '200px';
+            preview.style.marginBottom = '15px';
+            
+            const container = document.querySelector('.image-upload-container');
+            const existingPreview = container.querySelector('img');
+            if (existingPreview) {
+                container.replaceChild(preview, existingPreview);
+            } else {
+                container.insertBefore(preview, container.firstChild);
+            }
+        }
+    });
+});
+</script>
 {% endblock %}
